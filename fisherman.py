@@ -167,65 +167,67 @@ class ChatReader:
         self._last_chat_text = self.read_chat()
         log.info("[SNAPSHOT] Chat referansı alındı.")
 
-    def _is_fuzzy_match(self, keyword: str, text: str, threshold: float = 0.75) -> bool:
-        # OCR Hata Sözlüğü / Karakter Düzeltmeleri
-        replacements = {
-            "1": "l", "0": "o", "5": "s", "$": "s", "4": "a", "@": "a", 
-            "3": "e", "!": "i", "ı": "i", "ş": "s", "ğ": "g", "ü": "u", "ö": "o", "ç": "c"
-        }
-        
-        # Hem aranan kelimeyi hem okunan metni normalize et
-        norm_text = text.lower()
-        norm_keyword = keyword.lower()
-        for k, v in replacements.items():
-            norm_text = norm_text.replace(k, v)
-            norm_keyword = norm_keyword.replace(k, v)
+    def _normalize(self, text: str) -> str:
+        """OCR hata duzeltme: rakam/sembol harf donusumu + kucuk harf."""
+        t = text.lower()
+        for k, v in [("1","l"),("0","o"),("5","s"),("$","s"),("4","a"),("@","a"),
+                     ("3","e"),("!","i"),("I","i"),("s","s"),("g","g"),("u","u"),("o","o"),("c","c")]:
+            t = t.replace(k, v)
+        return t
 
-        if norm_keyword in norm_text: return True
-        
-        words = norm_text.split()
-        kw_words = norm_keyword.split()
-        
+    def _best_score(self, keyword: str, text: str) -> float:
+        """Normalize edilmis keyword ile text arasindaki en iyi benzerlik skorunu dondurur."""
+        norm_text = self._normalize(text)
+        norm_kw   = self._normalize(keyword)
+
+        if norm_kw in norm_text:
+            return 1.0
+
+        words    = norm_text.split()
+        kw_words = norm_kw.split()
+        best     = 0.0
+
         if len(kw_words) == 1:
-            return bool(difflib.get_close_matches(norm_keyword, words, n=1, cutoff=threshold))
-            
-        for i in range(len(words) - len(kw_words) + 1):
-            window = " ".join(words[i:i+len(kw_words)])
-            if difflib.SequenceMatcher(None, norm_keyword, window).ratio() >= threshold:
-                return True
-        return False
-
-    def read_new_last_line(self) -> str:
-        current_text = self.read_chat()
-        if not current_text: return ""
-        ratio = difflib.SequenceMatcher(None, getattr(self, "_last_chat_text", ""), current_text).ratio()
-        if ratio > 0.85: return ""
-        self._last_chat_text = current_text
-        all_lines = [l.strip() for l in current_text.splitlines() if l.strip()]
-        if not all_lines: return ""
-        last_line = all_lines[-1]
-        log.info(f"[OCR YENİ MESAJ] '{last_line}'")
-        return last_line
+            for w in words:
+                s = difflib.SequenceMatcher(None, norm_kw, w).ratio()
+                if s > best:
+                    best = s
+        else:
+            for i in range(max(1, len(words) - len(kw_words) + 1)):
+                window = " ".join(words[i:i+len(kw_words)])
+                s = difflib.SequenceMatcher(None, norm_kw, window).ratio()
+                if s > best:
+                    best = s
+        return best
 
     def check_fish_bite(self, text: str) -> str:
         if not text:
-            log.warning("[WHITELIST UNKNOWN] Chat boş okundu! Garantiyeye alıp OYNUYORUZ!")
+            log.warning("[WHITELIST UNKNOWN] Chat bos okundu! Garantiyeye alip OYNUYORUZ!")
             return "play"
-                
-        # Whitelist kontrolü
-        # Daha uzun kelimeleri önce kontrol et (örn: 'altın sudak' 'sudak'tan önce gelsin)
-        sorted_whitelist = sorted(self.config.whitelist.items(), key=lambda x: len(x[0]), reverse=True)
-        for keyword, should_catch in sorted_whitelist:
-            if self._is_fuzzy_match(keyword, text):
-                if should_catch:
-                    log.info(f"[WHITELIST MATCH] '{keyword}' yakalanacak!")
-                    return "play"
-                else:
-                    log.info(f"[WHITELIST SKIP] '{keyword}' istenmiyor. İptal ediliyor.")
-                    return "skip"
-                    
-        # Listede hiçbir eşleşme yoksa (veya OCR kötü okuduysa)
-        log.warning(f"[WHITELIST UNKNOWN] Tanımlanamayan metin. Garantiyeye alıp OYNUYORUZ! ({text[:50]})")
+
+        MIN_THRESHOLD = 0.72
+
+        best_keyword      = None
+        best_should_catch = False
+        best_score        = 0.0
+
+        for keyword, should_catch in self.config.whitelist.items():
+            score = self._best_score(keyword, text)
+            log.debug(f"[SCORE] '{keyword}' -> {score:.3f}")
+            if score > best_score:
+                best_score        = score
+                best_keyword      = keyword
+                best_should_catch = should_catch
+
+        if best_keyword and best_score >= MIN_THRESHOLD:
+            if best_should_catch:
+                log.info(f"[WHITELIST MATCH] '{best_keyword}' (skor: {best_score:.2f}) yakalanacak!")
+                return "play"
+            else:
+                log.info(f"[WHITELIST SKIP] '{best_keyword}' (skor: {best_score:.2f}) istenmiyor. Iptal.")
+                return "skip"
+
+        log.warning(f"[WHITELIST UNKNOWN] Tanimlanamayan metin (en iyi: '{best_keyword}' @ {best_score:.2f}). OYNUYORUZ! ({text[:50]})")
         return "play"
 
 # ===========================================================================
