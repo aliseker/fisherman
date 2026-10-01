@@ -35559,3 +35559,205 @@ lüfer balvğı ol)
 2026-10-01 04:04:19,577 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 8
 2026-10-01 04:04:19,678 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
 2026-10-01 04:04:22,233 [INFO] Bot kapatıldı. Stats: {'total_casts': 2, 'hits': 13, 'misses': 0, 'valuable_fish': 2, 'worthless_fish': 0, 'session_start': 1790816637.6051142}
+2026-10-02 01:50:09,809 [INFO] Metin2 Fishing Bot (Gelişmiş Multi-Thread Mimari) başlatıldı.
+2026-10-02 01:50:09,810 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:50:13,202 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:50:13,224 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:50:13,325 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:50:13,332 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:50:13,333 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:50:13,334 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:50:13,348 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Çember Merkezi, Koordinat: (167, 138)
+2026-10-02 01:50:13,406 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:50:13,816 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (118, 131)
+2026-10-02 01:50:13,892 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 2)
+2026-10-02 01:50:14,774 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. altın yüzük takılmış gibi görünüyor . oltaya'
+2026-10-02 01:50:14,780 [INFO] [WHITELIST SKIP] 'altın yüzük' istenmiyor. İptal ediliyor.
+2026-10-02 01:50:14,781 [INFO] [THREAD 4] DİKKAT: İstenmeyen balık! Minigame anında iptal ediliyor.
+2026-10-02 01:50:14,798 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 2
+2026-10-02 01:50:15,112 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:50:16,566 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:50:19,981 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:50:19,987 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:50:20,088 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:50:20,089 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:50:20,089 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:50:20,089 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:50:20,100 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Çember Merkezi, Koordinat: (167, 138)
+2026-10-02 01:50:20,166 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:50:21,156 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (78, 168)
+2026-10-02 01:50:21,227 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 2)
+2026-10-02 01:50:21,266 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taktın. zargana oltaya takılmış gibi görünüyor ,'
+2026-10-02 01:50:21,268 [INFO] [WHITELIST MATCH] 'zargana' yakalanacak!
+2026-10-02 01:50:22,154 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (258, 83)
+2026-10-02 01:50:22,215 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 3)
+2026-10-02 01:50:24,003 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (97, 76)
+2026-10-02 01:50:24,050 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 4)
+2026-10-02 01:50:24,460 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (102, 88)
+2026-10-02 01:50:24,521 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 5)
+2026-10-02 01:50:24,543 [INFO] [THREAD 2] Minigame penceresi kapandı (Mavi su yok).
+2026-10-02 01:50:24,557 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 5
+2026-10-02 01:50:24,658 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:50:26,150 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:50:29,557 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:50:30,070 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:50:30,171 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:50:30,172 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:50:30,172 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:50:30,172 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:50:30,881 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (67, 130)
+2026-10-02 01:50:30,938 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:50:31,330 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. hamsi oltaya takılmış gibi görünüyor .'
+2026-10-02 01:50:31,333 [INFO] [WHITELIST MATCH] 'hamsi' yakalanacak!
+2026-10-02 01:50:31,344 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (96, 153)
+2026-10-02 01:50:31,402 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 2)
+2026-10-02 01:50:31,803 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (109, 150)
+2026-10-02 01:50:31,857 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 3)
+2026-10-02 01:50:33,139 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (58, 148)
+2026-10-02 01:50:33,189 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 4)
+2026-10-02 01:50:33,599 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (216, 149)
+2026-10-02 01:50:33,635 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 5)
+2026-10-02 01:50:34,497 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (252, 121)
+2026-10-02 01:50:34,555 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 6)
+2026-10-02 01:50:36,038 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (69, 145)
+2026-10-02 01:50:36,096 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 7)
+2026-10-02 01:50:36,497 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (70, 139)
+2026-10-02 01:50:36,557 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 8)
+2026-10-02 01:50:36,591 [INFO] [THREAD 2] Minigame penceresi kapandı (Mavi su yok).
+2026-10-02 01:50:36,605 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 8
+2026-10-02 01:50:36,706 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:50:38,252 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:50:41,574 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:50:42,092 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:50:42,194 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:50:42,194 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:50:42,195 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:50:42,195 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:50:43,378 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taktın. altın ton balığı oltaya takılmış gibi görünüyor .'
+2026-10-02 01:50:43,379 [INFO] [WHITELIST MATCH] 'som balığı' yakalanacak!
+2026-10-02 01:50:43,908 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (209, 216)
+2026-10-02 01:50:43,961 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:50:46,454 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (120, 44)
+2026-10-02 01:50:46,523 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 2)
+2026-10-02 01:50:46,923 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (143, 44)
+2026-10-02 01:50:46,968 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 3)
+2026-10-02 01:50:47,984 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (212, 167)
+2026-10-02 01:50:48,038 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 4)
+2026-10-02 01:50:48,438 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (212, 167)
+2026-10-02 01:50:48,474 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 5)
+2026-10-02 01:50:48,516 [INFO] [THREAD 2] Minigame penceresi kapandı (Mavi su yok).
+2026-10-02 01:50:48,527 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 5
+2026-10-02 01:50:48,628 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:50:50,095 [INFO] Bot kapatıldı. Stats: {'total_casts': 4, 'hits': 18, 'misses': 0, 'valuable_fish': 3, 'worthless_fish': 1, 'session_start': 1790895009.8094668}
+2026-10-02 01:50:56,959 [INFO] Metin2 Fishing Bot (Gelişmiş Multi-Thread Mimari) başlatıldı.
+2026-10-02 01:50:56,959 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:51:00,002 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:51:00,010 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:51:00,111 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:51:00,112 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:51:00,112 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:51:00,112 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:51:00,448 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (120, 43)
+2026-10-02 01:51:00,517 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:51:01,296 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. sazan oltaya takılmış görünüyor . gibi'
+2026-10-02 01:51:01,297 [INFO] [WHITELIST MATCH] 'sazan' yakalanacak!
+2026-10-02 01:51:03,690 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (239, 190)
+2026-10-02 01:51:03,743 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 2)
+2026-10-02 01:51:04,743 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (103, 107)
+2026-10-02 01:51:04,798 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 3)
+2026-10-02 01:51:05,200 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (256, 114)
+2026-10-02 01:51:05,254 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 4)
+2026-10-02 01:51:06,810 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (234, 202)
+2026-10-02 01:51:06,869 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 5)
+2026-10-02 01:51:07,278 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (234, 202)
+2026-10-02 01:51:07,336 [INFO] [THREAD 2] Minigame penceresi kapandı (Mavi su yok).
+2026-10-02 01:51:07,342 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 6)
+2026-10-02 01:51:07,352 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 6
+2026-10-02 01:51:07,453 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:51:08,871 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:51:12,060 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:51:13,079 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:51:13,181 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:51:13,181 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:51:13,182 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:51:13,182 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:51:14,383 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. levrek oltaya takılmış gibi görünüyor .'
+2026-10-02 01:51:14,390 [WARNING] [WHITELIST UNKNOWN] Tanımlanamayan metin. Garantiyeye alıp OYNUYORUZ! (çengele yem olarak solucan taklın.
+levrek oltaya t)
+2026-10-02 01:51:15,355 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (93, 56)
+2026-10-02 01:51:15,394 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:51:15,795 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (241, 96)
+2026-10-02 01:51:15,857 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 2)
+2026-10-02 01:51:16,808 [INFO] [THREAD 2] Minigame penceresi kapandı (Mavi su yok).
+2026-10-02 01:51:16,821 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 2
+2026-10-02 01:51:16,921 [INFO] Bot kapatıldı. Stats: {'total_casts': 2, 'hits': 8, 'misses': 0, 'valuable_fish': 2, 'worthless_fish': 0, 'session_start': 1790895056.9575982}
+2026-10-02 01:52:02,306 [INFO] Metin2 Fishing Bot (Gelişmiş Multi-Thread Mimari) başlatıldı.
+2026-10-02 01:52:02,306 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:52:05,688 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:52:06,205 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:52:06,306 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:52:06,307 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:52:06,307 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:52:06,308 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:52:07,476 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. sazan oltaya takılmıg gibi görünüyor .'
+2026-10-02 01:52:07,477 [INFO] [WHITELIST SKIP] 'sazan' istenmiyor. İptal ediliyor.
+2026-10-02 01:52:07,477 [INFO] [THREAD 4] DİKKAT: İstenmeyen balık! Minigame anında iptal ediliyor.
+2026-10-02 01:52:07,985 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 0
+2026-10-02 01:52:08,187 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:52:09,581 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:52:12,780 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:52:13,802 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:52:13,904 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:52:13,904 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:52:13,905 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:52:13,905 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:52:14,926 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (235, 176)
+2026-10-02 01:52:14,981 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:52:15,089 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. sazan oltaya takılmıg gibi görünüyor .'
+2026-10-02 01:52:15,090 [INFO] [WHITELIST SKIP] 'sazan' istenmiyor. İptal ediliyor.
+2026-10-02 01:52:15,090 [INFO] [THREAD 4] DİKKAT: İstenmeyen balık! Minigame anında iptal ediliyor.
+2026-10-02 01:52:15,103 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 1
+2026-10-02 01:52:15,356 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:52:16,801 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:52:19,992 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:52:19,998 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:52:20,099 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:52:20,100 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:52:20,100 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:52:20,101 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:52:20,281 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (267, 147)
+2026-10-02 01:52:20,348 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:52:20,751 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (122, 186)
+2026-10-02 01:52:20,795 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 2)
+2026-10-02 01:52:21,322 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. oltaya görünmezlik pelerini takılmış görünüyor , gibi'
+2026-10-02 01:52:21,332 [WARNING] [WHITELIST UNKNOWN] Tanımlanamayan metin. Garantiyeye alıp OYNUYORUZ! (çengele yem olarak solucan taklın.
+oltaya görünmez)
+2026-10-02 01:52:22,377 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (83, 102)
+2026-10-02 01:52:22,412 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 3)
+2026-10-02 01:52:26,114 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (84, 154)
+2026-10-02 01:52:26,154 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 4)
+2026-10-02 01:52:27,082 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (141, 187)
+2026-10-02 01:52:27,124 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 5)
+2026-10-02 01:52:27,534 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (177, 94)
+2026-10-02 01:52:27,594 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 6)
+2026-10-02 01:52:28,004 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (178, 79)
+2026-10-02 01:52:28,064 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 7)
+2026-10-02 01:52:28,075 [INFO] [THREAD 2] Minigame penceresi kapandı (Mavi su yok).
+2026-10-02 01:52:28,086 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 7
+2026-10-02 01:52:28,187 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:52:29,571 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:52:32,910 [INFO] [STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...
+2026-10-02 01:52:33,428 [INFO] [STATE 2] Minigame açıldı! ZAMAN KAYBETMEDEN OYUNA BAŞLANIYOR!
+2026-10-02 01:52:33,529 [INFO] [THREAD 1] Görüntü Yakalayıcı (Producer) başlatıldı.
+2026-10-02 01:52:33,530 [INFO] [THREAD 2] Koordinat İzleyici (Consumer 1) başlatıldı. (Grayscale FOOLPROOF Modu)
+2026-10-02 01:52:33,530 [INFO] [THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.
+2026-10-02 01:52:33,531 [INFO] [THREAD 4] Minigame oynanırken arka planda Chat okunuyor...
+2026-10-02 01:52:34,292 [INFO] [THREAD 3] TIKLANIYOR! Hedef: Tahminli Balık, Koordinat: (94, 169)
+2026-10-02 01:52:34,352 [INFO] [THREAD 3] Tıklama yapıldı (Toplam deneme: 1)
+2026-10-02 01:52:34,707 [INFO] [OCR] Okunan Chat: 'çengele yem olarak solucan taklın. altın sudak balığı oltaya takılmş gibi görünüyor .'
+2026-10-02 01:52:34,707 [INFO] [WHITELIST SKIP] 'sudak' istenmiyor. İptal ediliyor.
+2026-10-02 01:52:34,708 [INFO] [THREAD 4] DİKKAT: İstenmeyen balık! Minigame anında iptal ediliyor.
+2026-10-02 01:52:34,722 [INFO] [MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: 1
+2026-10-02 01:52:34,963 [INFO] [STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...
+2026-10-02 01:52:36,283 [INFO] [STATE 1] Olta atılıyor... (Mod: Whitelist)
+2026-10-02 01:52:39,469 [INFO] Bot kapatıldı. Stats: {'total_casts': 5, 'hits': 7, 'misses': 0, 'valuable_fish': 1, 'worthless_fish': 3, 'session_start': 1790895122.3053098}

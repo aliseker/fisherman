@@ -167,15 +167,31 @@ class ChatReader:
         self._last_chat_text = self.read_chat()
         log.info("[SNAPSHOT] Chat referansı alındı.")
 
-    def _is_fuzzy_match(self, keyword: str, text: str, threshold: float = 0.7) -> bool:
-        if keyword in text: return True
-        words = text.split()
-        kw_words = keyword.split()
+    def _is_fuzzy_match(self, keyword: str, text: str, threshold: float = 0.55) -> bool:
+        # OCR Hata Sözlüğü / Karakter Düzeltmeleri
+        replacements = {
+            "1": "l", "0": "o", "5": "s", "$": "s", "4": "a", "@": "a", 
+            "3": "e", "!": "i", "ı": "i", "ş": "s", "ğ": "g", "ü": "u", "ö": "o", "ç": "c"
+        }
+        
+        # Hem aranan kelimeyi hem okunan metni normalize et
+        norm_text = text.lower()
+        norm_keyword = keyword.lower()
+        for k, v in replacements.items():
+            norm_text = norm_text.replace(k, v)
+            norm_keyword = norm_keyword.replace(k, v)
+
+        if norm_keyword in norm_text: return True
+        
+        words = norm_text.split()
+        kw_words = norm_keyword.split()
+        
         if len(kw_words) == 1:
-            return bool(difflib.get_close_matches(keyword, words, n=1, cutoff=threshold))
+            return bool(difflib.get_close_matches(norm_keyword, words, n=1, cutoff=threshold))
+            
         for i in range(len(words) - len(kw_words) + 1):
             window = " ".join(words[i:i+len(kw_words)])
-            if difflib.SequenceMatcher(None, keyword, window).ratio() >= threshold:
+            if difflib.SequenceMatcher(None, norm_keyword, window).ratio() >= threshold:
                 return True
         return False
 
