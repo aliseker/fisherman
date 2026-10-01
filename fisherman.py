@@ -167,7 +167,7 @@ class ChatReader:
         self._last_chat_text = self.read_chat()
         log.info("[SNAPSHOT] Chat referansı alındı.")
 
-    def _is_fuzzy_match(self, keyword: str, text: str, threshold: float = 0.55) -> bool:
+    def _is_fuzzy_match(self, keyword: str, text: str, threshold: float = 0.75) -> bool:
         # OCR Hata Sözlüğü / Karakter Düzeltmeleri
         replacements = {
             "1": "l", "0": "o", "5": "s", "$": "s", "4": "a", "@": "a", 
