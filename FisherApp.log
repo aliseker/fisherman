@@ -1,0 +1,706 @@
+2026-09-29 04:19:29,714 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 04:19:29,718 [WARNING] Downloading detection model, please wait. This may take several minutes depending upon your network connection.
+2026-09-29 04:24:20,167 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 04:24:20,172 [WARNING] Downloading detection model, please wait. This may take several minutes depending upon your network connection.
+2026-09-29 04:49:02,597 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 04:49:02,600 [WARNING] Downloading detection model, please wait. This may take several minutes depending upon your network connection.
+2026-09-29 04:49:58,833 [INFO] Download complete
+2026-09-29 04:49:58,834 [WARNING] Downloading recognition model, please wait. This may take several minutes depending upon your network connection.
+2026-09-29 04:50:09,771 [INFO] Download complete.
+2026-09-29 04:50:11,251 [INFO] EasyOCR hazır.
+2026-09-29 04:50:11,251 [INFO] ============================================================
+2026-09-29 04:50:11,251 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 04:50:11,252 [INFO] Mod          : NORMAL
+2026-09-29 04:50:11,252 [INFO] Farm süresi  : 90 dk
+2026-09-29 04:50:11,252 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 04:50:11,252 [INFO] ============================================================
+2026-09-29 04:50:11,253 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 04:50:11,754 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 04:50:11,754 [INFO]   5...
+2026-09-29 04:50:12,754 [INFO]   4...
+2026-09-29 04:50:13,755 [INFO]   3...
+2026-09-29 04:50:14,756 [INFO]   2...
+2026-09-29 04:50:15,756 [INFO]   1...
+2026-09-29 04:50:16,757 [INFO] Bot BAŞLADI!
+2026-09-29 04:50:16,757 [INFO] 
+========================================
+2026-09-29 04:50:16,757 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 04:50:16,757 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 04:50:16,758 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 04:50:18,198 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 04:50:19,596 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 04:50:48,299 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 04:50:50,271 [INFO] EasyOCR hazır.
+2026-09-29 04:50:50,276 [INFO] ============================================================
+2026-09-29 04:50:50,277 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 04:50:50,277 [INFO] Mod          : NORMAL
+2026-09-29 04:50:50,277 [INFO] Farm süresi  : 90 dk
+2026-09-29 04:50:50,278 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 04:50:50,278 [INFO] ============================================================
+2026-09-29 04:50:50,278 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 04:50:50,781 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 04:50:50,781 [INFO]   5...
+2026-09-29 04:50:51,782 [INFO]   4...
+2026-09-29 04:50:52,782 [INFO]   3...
+2026-09-29 04:50:53,783 [INFO]   2...
+2026-09-29 04:50:54,783 [INFO]   1...
+2026-09-29 04:50:55,784 [INFO] Bot BAŞLADI!
+2026-09-29 04:50:55,784 [INFO] 
+========================================
+2026-09-29 04:50:55,784 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 04:50:55,784 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 04:50:55,785 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 04:50:56,901 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 04:50:58,273 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 04:51:18,957 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 04:51:20,610 [INFO] EasyOCR hazır.
+2026-09-29 04:51:20,610 [INFO] ============================================================
+2026-09-29 04:51:20,610 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 04:51:20,611 [INFO] Mod          : NORMAL
+2026-09-29 04:51:20,611 [INFO] Farm süresi  : 90 dk
+2026-09-29 04:51:20,611 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 04:51:20,611 [INFO] ============================================================
+2026-09-29 04:51:20,616 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 04:51:21,116 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 04:51:21,116 [INFO]   5...
+2026-09-29 04:51:22,117 [INFO]   4...
+2026-09-29 04:51:23,117 [INFO]   3...
+2026-09-29 04:51:24,118 [INFO]   2...
+2026-09-29 04:51:25,118 [INFO]   1...
+2026-09-29 04:51:26,119 [INFO] Bot BAŞLADI!
+2026-09-29 04:51:26,119 [INFO] 
+========================================
+2026-09-29 04:51:26,120 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 04:51:26,120 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 04:51:26,120 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 04:51:27,152 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 04:51:28,529 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 04:52:05,418 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 04:52:07,195 [INFO] EasyOCR hazır.
+2026-09-29 04:52:07,196 [INFO] ============================================================
+2026-09-29 04:52:07,196 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 04:52:07,196 [INFO] Mod          : NORMAL
+2026-09-29 04:52:07,196 [INFO] Farm süresi  : 90 dk
+2026-09-29 04:52:07,197 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 04:52:07,197 [INFO] ============================================================
+2026-09-29 04:52:07,198 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 04:52:07,700 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 04:52:07,701 [INFO]   5...
+2026-09-29 04:52:08,701 [INFO]   4...
+2026-09-29 04:52:09,702 [INFO]   3...
+2026-09-29 04:52:10,703 [INFO]   2...
+2026-09-29 04:52:11,704 [INFO]   1...
+2026-09-29 04:52:12,704 [INFO] Bot BAŞLADI!
+2026-09-29 04:52:12,705 [INFO] 
+========================================
+2026-09-29 04:52:12,705 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 04:52:12,705 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 04:52:12,705 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 04:52:13,848 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 04:52:15,237 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 04:52:28,597 [WARNING] [STATE 1] Zaman aşımı! Olta tekrar atılıyor.
+2026-09-29 04:52:28,668 [INFO] Bot kapatıldı.
+2026-09-29 04:52:28,668 [INFO] Son istatistikler: {'total_casts': 1, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790646680.6107242}
+2026-09-29 04:52:28,683 [ERROR] Hata: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:1210: error: (-2:Unspecified error) The function is not implemented. Rebuild the library with Windows, GTK+ 2.x or Cocoa support. If you are on Ubuntu or Debian, install libgtk2.0-dev and pkg-config, then re-run cmake or configure script in function 'destroyAllWindowsImpl'
+Traceback (most recent call last):
+  File "c:\Projects\fisherman\panel.py", line 438, in _run_worker
+    self._helper.run()
+    ~~~~~~~~~~~~~~~~^^
+  File "c:\Projects\fisherman\fisherman.py", line 1144, in run
+    cv2.destroyAllWindows()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+cv2.error: OpenCV(5.0.0) D:\a\opencv-python\opencv-python\opencv\modules\highgui\src\window.cpp:1210: error: (-2:Unspecified error) The function is not implemented. Rebuild the library with Windows, GTK+ 2.x or Cocoa support. If you are on Ubuntu or Debian, install libgtk2.0-dev and pkg-config, then re-run cmake or configure script in function 'destroyAllWindowsImpl'
+
+2026-09-29 04:53:15,607 [WARNING] [STATE 1] Zaman aşımı! Olta tekrar atılıyor.
+2026-09-29 04:53:15,751 [INFO] 
+========================================
+2026-09-29 04:53:15,751 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 04:53:15,751 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:01:08
+2026-09-29 04:53:15,751 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 04:53:17,332 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 04:53:18,641 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 04:59:32,775 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 04:59:34,366 [INFO] EasyOCR hazır.
+2026-09-29 04:59:34,366 [INFO] ============================================================
+2026-09-29 04:59:34,367 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 04:59:34,367 [INFO] Mod          : NORMAL
+2026-09-29 04:59:34,367 [INFO] Farm süresi  : 90 dk
+2026-09-29 04:59:34,367 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 04:59:34,367 [INFO] ============================================================
+2026-09-29 04:59:34,368 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 04:59:34,869 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 04:59:34,869 [INFO]   5...
+2026-09-29 04:59:35,869 [INFO]   4...
+2026-09-29 04:59:36,870 [INFO]   3...
+2026-09-29 04:59:37,871 [INFO]   2...
+2026-09-29 04:59:38,872 [INFO]   1...
+2026-09-29 04:59:39,872 [INFO] Bot BAŞLADI!
+2026-09-29 04:59:39,873 [INFO] 
+========================================
+2026-09-29 04:59:39,873 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 04:59:39,873 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 04:59:39,873 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 04:59:41,432 [INFO] [SNAPSHOT] 8 eski chat satırı kaydedildi.
+2026-09-29 04:59:41,432 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 04:59:42,937 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 04:59:46,899 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:47,788 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:48,701 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:49,620 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:50,537 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:51,466 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:52,402 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:53,352 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:54,287 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:55,262 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:56,192 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:57,141 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:58,149 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 04:59:59,097 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 05:00:00,000 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 05:00:00,919 [INFO] [OCR YENİ SATIR] 'cltaya albn anahtar takık$ gibi gcrürüvor _' (toplam 9 yeni satır)
+2026-09-29 05:00:01,741 [INFO] [OCR YENİ SATIR] 'kaybeti' (toplam 9 yeni satır)
+2026-09-29 05:00:02,556 [INFO] [OCR YENİ SATIR] 'kaybeti' (toplam 9 yeni satır)
+2026-09-29 05:00:03,341 [INFO] [OCR YENİ SATIR] 'kaybeti' (toplam 9 yeni satır)
+2026-09-29 05:00:03,401 [INFO] [STATE 1] Bot durduruldu, tarama iptal.
+2026-09-29 05:00:03,549 [INFO] Bot kapatıldı.
+2026-09-29 05:00:03,549 [INFO] Son istatistikler: {'total_casts': 1, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790647174.3669686}
+2026-09-29 05:00:33,757 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:00:35,370 [INFO] EasyOCR hazır.
+2026-09-29 05:00:35,371 [INFO] ============================================================
+2026-09-29 05:00:35,371 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:00:35,371 [INFO] Mod          : NORMAL
+2026-09-29 05:00:35,371 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:00:35,371 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:00:35,372 [INFO] ============================================================
+2026-09-29 05:00:35,373 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:00:35,874 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:00:35,874 [INFO]   5...
+2026-09-29 05:00:36,875 [INFO]   4...
+2026-09-29 05:10:11,903 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:10:13,467 [INFO] EasyOCR hazır.
+2026-09-29 05:10:13,468 [INFO] ============================================================
+2026-09-29 05:10:13,468 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:10:13,468 [INFO] Mod          : NORMAL
+2026-09-29 05:10:13,468 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:10:13,469 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:10:13,469 [INFO] ============================================================
+2026-09-29 05:10:13,469 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:10:13,970 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:10:13,970 [INFO]   5...
+2026-09-29 05:10:14,970 [INFO]   4...
+2026-09-29 05:10:15,971 [INFO]   3...
+2026-09-29 05:10:16,971 [INFO]   2...
+2026-09-29 05:10:17,972 [INFO]   1...
+2026-09-29 05:10:18,973 [INFO] Bot BAŞLADI!
+2026-09-29 05:10:18,973 [INFO] 
+========================================
+2026-09-29 05:10:18,973 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:10:18,973 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:10:18,973 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:10:19,898 [INFO] [SNAPSHOT] 2 eski chat satırı kaydedildi.
+2026-09-29 05:10:19,899 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:10:21,280 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:10:21,524 [INFO] [OCR YENİ SATIR] 'basladi!' (toplam 2 yeni satır)
+2026-09-29 05:10:21,840 [INFO] [OCR YENİ SATIR] 'basladi!' (toplam 2 yeni satır)
+2026-09-29 05:10:22,134 [INFO] [OCR YENİ SATIR] 'basladi!' (toplam 2 yeni satır)
+2026-09-29 05:10:22,632 [INFO] [OCR YENİ SATIR] 'hit:' (toplam 7 yeni satır)
+2026-09-29 05:10:23,168 [INFO] [OCR YENİ SATIR] '00;00;05' (toplam 8 yeni satır)
+2026-09-29 05:10:23,839 [INFO] [OCR YENİ SATIR] 'norhal )' (toplam 12 yeni satır)
+2026-09-29 05:10:24,580 [INFO] [OCR YENİ SATIR] 'kaydedildi_' (toplam 14 yeni satır)
+2026-09-29 05:10:25,433 [INFO] [OCR YENİ SATIR] '(sadece yeni satırlar)-' (toplam 16 yeni satır)
+2026-09-29 05:10:26,296 [INFO] [OCR YENİ SATIR] '(sadece yeni satırlar)-' (toplam 16 yeni satır)
+2026-09-29 05:10:27,241 [INFO] [OCR YENİ SATIR] 'satır)' (toplam 23 yeni satır)
+2026-09-29 05:10:28,209 [INFO] [OCR YENİ SATIR] 'yeni satır)' (toplam 25 yeni satır)
+2026-09-29 05:10:29,192 [INFO] [OCR YENİ SATIR] 'yeni̇' (toplam 24 yeni satır)
+2026-09-29 05:10:29,989 [INFO] [OCR YENİ SATIR] 'yeni' (toplam 17 yeni satır)
+2026-09-29 05:10:30,801 [INFO] [OCR YENİ SATIR] '(toplam' (toplam 17 yeni satır)
+2026-09-29 05:10:31,585 [INFO] [OCR YENİ SATIR] '(toplam' (toplam 17 yeni satır)
+2026-09-29 05:10:32,205 [INFO] [OCR YENİ SATIR] '(toplam' (toplam 12 yeni satır)
+2026-09-29 05:10:32,842 [INFO] [OCR YENİ SATIR] '(toplam' (toplam 12 yeni satır)
+2026-09-29 05:10:33,463 [INFO] [OCR YENİ SATIR] '(toplam' (toplam 12 yeni satır)
+2026-09-29 05:10:34,247 [INFO] [OCR YENİ SATIR] 'yeni̇' (toplam 17 yeni satır)
+2026-09-29 05:10:35,037 [INFO] [OCR YENİ SATIR] 'yeni̇' (toplam 17 yeni satır)
+2026-09-29 05:10:35,628 [INFO] [OCR YENİ SATIR] 'yeni' (toplam 10 yeni satır)
+2026-09-29 05:10:36,414 [INFO] [OCR YENİ SATIR] 'satır)' (toplam 18 yeni satır)
+2026-09-29 05:10:37,202 [INFO] [OCR YENİ SATIR] 'satır)' (toplam 18 yeni satır)
+2026-09-29 05:10:38,002 [INFO] [OCR YENİ SATIR] 'yeni satır)' (toplam 16 yeni satır)
+2026-09-29 05:10:38,988 [INFO] [OCR YENİ SATIR] 'satır)' (toplam 25 yeni satır)
+2026-09-29 05:10:39,056 [INFO] [STATE 1] Bot durduruldu, tarama iptal.
+2026-09-29 05:10:39,148 [INFO] Bot kapatıldı.
+2026-09-29 05:10:39,148 [INFO] Son istatistikler: {'total_casts': 1, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790647813.4683745}
+2026-09-29 05:14:10,160 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:14:11,776 [INFO] EasyOCR hazır.
+2026-09-29 05:14:11,776 [INFO] ============================================================
+2026-09-29 05:14:11,777 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:14:11,777 [INFO] Mod          : NORMAL
+2026-09-29 05:14:11,777 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:14:11,777 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:14:11,777 [INFO] ============================================================
+2026-09-29 05:14:11,778 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:14:12,278 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:14:12,279 [INFO]   5...
+2026-09-29 05:14:13,279 [INFO]   4...
+2026-09-29 05:14:14,280 [INFO]   3...
+2026-09-29 05:14:15,280 [INFO]   2...
+2026-09-29 05:14:16,281 [INFO]   1...
+2026-09-29 05:14:17,282 [INFO] Bot BAŞLADI!
+2026-09-29 05:14:17,282 [INFO] 
+========================================
+2026-09-29 05:14:17,283 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:14:17,283 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:14:17,283 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:14:18,830 [INFO] [SNAPSHOT] 7 eski chat satırı kaydedildi.
+2026-09-29 05:14:18,830 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:14:20,204 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:14:20,980 [INFO] [OCR YENİ SATIR] 'yerri kavbdli_' (toplam 2 yeni satır)
+2026-09-29 05:14:21,858 [INFO] [OCR YENİ SATIR] 'yerri kavbdli_' (toplam 3 yeni satır)
+2026-09-29 05:14:22,695 [INFO] [OCR YENİ SATIR] 'cltays bige kralın sembolu takl; qibi görürüyor' (toplam 2 yeni satır)
+2026-09-29 05:14:22,697 [INFO] [NORMAL] Takılma tespit edildi → minigame oynuyorum. ('cltays bige kralın sembolu takl; qibi görürüyor')
+2026-09-29 05:14:22,697 [INFO] [STATE 1] Karar: play ← 'cltays bige kralın sembolu takl; qibi görürüyor'
+2026-09-29 05:14:22,847 [INFO] 
+========================================
+2026-09-29 05:14:22,847 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:14:22,847 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:11
+2026-09-29 05:14:22,847 [INFO] [STATE 2] Karar aşaması...
+2026-09-29 05:14:22,847 [INFO] [STATE 2] → Minigame oynuyorum!
+2026-09-29 05:14:23,260 [INFO] 
+========================================
+2026-09-29 05:14:23,260 [INFO] [DÖNGÜ] Mevcut State: MINIGAME
+2026-09-29 05:14:23,260 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:11
+2026-09-29 05:14:23,260 [INFO] [STATE 3] Minigame başlıyor...
+2026-09-29 05:14:31,945 [INFO] [STATE 3] Minigame penceresi kapandı.
+2026-09-29 05:14:31,946 [INFO] [STATE 3] Minigame bitti. Hit: 0/3
+2026-09-29 05:14:32,078 [INFO] 
+========================================
+2026-09-29 05:14:32,078 [INFO] [DÖNGÜ] Mevcut State: ANIM_CANCEL
+2026-09-29 05:14:32,078 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:20
+2026-09-29 05:14:32,079 [INFO] [STATE 4] Animasyon iptal ediliyor (Ctrl+G x2)...
+2026-09-29 05:14:33,215 [INFO] [STATE 4] Bineğe binildi.
+2026-09-29 05:14:34,074 [INFO] [STATE 4] Binekten inildi.
+2026-09-29 05:14:34,685 [INFO] 
+========================================
+2026-09-29 05:14:34,686 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:14:34,686 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:22
+2026-09-29 05:14:34,686 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:14:36,361 [INFO] [SNAPSHOT] 8 eski chat satırı kaydedildi.
+2026-09-29 05:14:36,361 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:14:37,732 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:14:38,598 [INFO] [OCR YENİ SATIR] 'baik tutarken bu işkmt gerçeklestirernezsin.' (toplam 6 yeni satır)
+2026-09-29 05:14:39,541 [INFO] [OCR YENİ SATIR] 'yefri kaybeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:40,501 [INFO] [OCR YENİ SATIR] 'yefrw kaybeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:41,482 [INFO] [OCR YENİ SATIR] 'yefri kaybath,' (toplam 7 yeni satır)
+2026-09-29 05:14:42,319 [INFO] [OCR YENİ SATIR] 'yari kaybath,' (toplam 7 yeni satır)
+2026-09-29 05:14:43,382 [INFO] [OCR YENİ SATIR] 'yefrw kavbeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:44,341 [INFO] [OCR YENİ SATIR] 'yefri kaybeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:45,227 [INFO] [OCR YENİ SATIR] 'yefrw kaybatin,' (toplam 8 yeni satır)
+2026-09-29 05:14:46,204 [INFO] [OCR YENİ SATIR] 'yefri kaybeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:47,052 [INFO] [OCR YENİ SATIR] 'yefri kaybath,' (toplam 7 yeni satır)
+2026-09-29 05:14:48,012 [INFO] [OCR YENİ SATIR] 'yefri kaybeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:49,087 [INFO] [OCR YENİ SATIR] 'yefrw kaybeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:50,078 [INFO] [OCR YENİ SATIR] 'yefri kaybeth,' (toplam 7 yeni satır)
+2026-09-29 05:14:51,066 [INFO] [OCR YENİ SATIR] 'yefrw kaybath,' (toplam 7 yeni satır)
+2026-09-29 05:14:52,198 [INFO] [OCR YENİ SATIR] 'yefri kaybatth,' (toplam 9 yeni satır)
+2026-09-29 05:14:52,266 [INFO] [STATE 1] Bot durduruldu, tarama iptal.
+2026-09-29 05:14:52,366 [INFO] Bot kapatıldı.
+2026-09-29 05:14:52,366 [INFO] Son istatistikler: {'total_casts': 2, 'hits': 0, 'misses': 0, 'valuable_fish': 1, 'worthless_fish': 0, 'session_start': 1790648051.7769535}
+2026-09-29 05:20:31,915 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:20:33,586 [INFO] EasyOCR hazır.
+2026-09-29 05:20:33,586 [INFO] ============================================================
+2026-09-29 05:20:33,587 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:20:33,587 [INFO] Mod          : NORMAL
+2026-09-29 05:20:33,587 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:20:33,587 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:20:33,587 [INFO] ============================================================
+2026-09-29 05:20:33,587 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:20:34,088 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:20:34,089 [INFO]   5...
+2026-09-29 05:20:35,089 [INFO]   4...
+2026-09-29 05:20:36,090 [INFO]   3...
+2026-09-29 05:20:37,090 [INFO]   2...
+2026-09-29 05:20:38,091 [INFO]   1...
+2026-09-29 05:20:39,092 [INFO] Bot BAŞLADI!
+2026-09-29 05:20:39,092 [INFO] 
+========================================
+2026-09-29 05:20:39,092 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:20:39,092 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:20:39,092 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:20:40,951 [INFO] [SNAPSHOT] 8 eski chat satırı kaydedildi.
+2026-09-29 05:20:40,951 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:20:42,432 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:20:43,240 [INFO] [OCR YENİ SATIR] 'çengek yerh olarak sducan takun,' (toplam 4 yeni satır)
+2026-09-29 05:20:44,114 [INFO] [OCR YENİ SATIR] 'zagany okaya takkmş qibi görürüyor -' (toplam 2 yeni satır)
+2026-09-29 05:20:44,115 [INFO] [NORMAL] Takılma tespit edildi → minigame oynuyorum. ('zagany okaya takkmş qibi görürüyor -')
+2026-09-29 05:20:44,116 [INFO] [STATE 1] Karar: play ← 'zagany okaya takkmş qibi görürüyor -'
+2026-09-29 05:20:44,246 [INFO] 
+========================================
+2026-09-29 05:20:44,247 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:20:44,247 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:10
+2026-09-29 05:20:44,247 [INFO] [STATE 2] Karar aşaması...
+2026-09-29 05:20:44,247 [INFO] [STATE 2] → Minigame oynuyorum!
+2026-09-29 05:20:44,622 [INFO] 
+========================================
+2026-09-29 05:20:44,622 [INFO] [DÖNGÜ] Mevcut State: MINIGAME
+2026-09-29 05:20:44,623 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:11
+2026-09-29 05:20:44,623 [INFO] [STATE 3] Minigame başlıyor...
+2026-09-29 05:20:59,718 [INFO] [STATE 3] CLICK! Mesafe: 3.0px | Kırmızı: False
+2026-09-29 05:21:02,988 [INFO] [STATE 3] Minigame penceresi kapandı.
+2026-09-29 05:21:02,989 [INFO] [STATE 3] Minigame bitti. Toplam tıklama: 1
+2026-09-29 05:21:03,111 [INFO] 
+========================================
+2026-09-29 05:21:03,111 [INFO] [DÖNGÜ] Mevcut State: ANIM_CANCEL
+2026-09-29 05:21:03,111 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:29
+2026-09-29 05:21:03,111 [INFO] [STATE 4] Animasyon iptal ediliyor (Ctrl+G x2)...
+2026-09-29 05:21:04,267 [INFO] [STATE 4] Bineğe binildi.
+2026-09-29 05:21:05,200 [INFO] [STATE 4] Binekten inildi.
+2026-09-29 05:21:05,694 [INFO] 
+========================================
+2026-09-29 05:21:05,694 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:21:05,694 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:32
+2026-09-29 05:21:05,695 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:21:07,161 [INFO] [SNAPSHOT] 9 eski chat satırı kaydedildi.
+2026-09-29 05:21:07,161 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:21:08,537 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:21:09,334 [INFO] [OCR YENİ SATIR] 'çengek yera olarak sducan takun,' (toplam 4 yeni satır)
+2026-09-29 05:21:10,177 [INFO] [OCR YENİ SATIR] 'çengek yerh olarak sducan takun,' (toplam 4 yeni satır)
+2026-09-29 05:21:11,157 [INFO] [OCR YENİ SATIR] 'yenvi kaybdtin_' (toplam 4 yeni satır)
+2026-09-29 05:21:12,003 [INFO] [OCR YENİ SATIR] 'som balğ dhuys takılmı; gbi görungyor ,' (toplam 2 yeni satır)
+2026-09-29 05:21:12,004 [INFO] [NORMAL] Takılma tespit edildi → minigame oynuyorum. ('som balğ dhuys takılmı; gbi görungyor ,')
+2026-09-29 05:21:12,004 [INFO] [STATE 1] Karar: play ← 'som balğ dhuys takılmı; gbi görungyor ,'
+2026-09-29 05:21:12,108 [INFO] 
+========================================
+2026-09-29 05:21:12,108 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:21:12,108 [INFO] [STATS] Cast:2 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:38
+2026-09-29 05:21:12,108 [INFO] [STATE 2] Karar aşaması...
+2026-09-29 05:21:12,108 [INFO] [STATE 2] → Minigame oynuyorum!
+2026-09-29 05:21:12,697 [INFO] 
+========================================
+2026-09-29 05:21:12,697 [INFO] [DÖNGÜ] Mevcut State: MINIGAME
+2026-09-29 05:21:12,697 [INFO] [STATS] Cast:2 | Değerli:2 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:39
+2026-09-29 05:21:12,698 [INFO] [STATE 3] Minigame başlıyor...
+2026-09-29 05:21:28,038 [INFO] [STATE 3] Minigame penceresi kapandı.
+2026-09-29 05:21:28,038 [INFO] [STATE 3] Minigame bitti. Toplam tıklama: 0
+2026-09-29 05:21:28,128 [INFO] 
+========================================
+2026-09-29 05:21:28,129 [INFO] [DÖNGÜ] Mevcut State: ANIM_CANCEL
+2026-09-29 05:21:28,129 [INFO] [STATS] Cast:2 | Değerli:2 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:54
+2026-09-29 05:21:28,129 [INFO] [STATE 4] Animasyon iptal ediliyor (Ctrl+G x2)...
+2026-09-29 05:21:29,287 [INFO] [STATE 4] Bineğe binildi.
+2026-09-29 05:21:30,094 [INFO] [STATE 4] Binekten inildi.
+2026-09-29 05:21:30,798 [INFO] 
+========================================
+2026-09-29 05:21:30,798 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:21:30,798 [INFO] [STATS] Cast:2 | Değerli:2 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:57
+2026-09-29 05:21:30,798 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:21:32,272 [INFO] [SNAPSHOT] 8 eski chat satırı kaydedildi.
+2026-09-29 05:21:32,272 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:21:33,729 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:21:33,729 [INFO] [STATE 1] Bot durduruldu, tarama iptal.
+2026-09-29 05:21:33,834 [INFO] Bot kapatıldı.
+2026-09-29 05:21:33,834 [INFO] Son istatistikler: {'total_casts': 3, 'hits': 0, 'misses': 0, 'valuable_fish': 2, 'worthless_fish': 0, 'session_start': 1790648433.5868657}
+2026-09-29 05:32:41,496 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:32:43,168 [INFO] EasyOCR hazır.
+2026-09-29 05:32:43,168 [INFO] ============================================================
+2026-09-29 05:32:43,168 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:32:43,168 [INFO] Mod          : NORMAL
+2026-09-29 05:32:43,169 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:32:43,169 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:32:43,169 [INFO] ============================================================
+2026-09-29 05:32:43,173 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:32:43,674 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:32:43,674 [INFO]   5...
+2026-09-29 05:32:44,674 [INFO]   4...
+2026-09-29 05:32:45,675 [INFO]   3...
+2026-09-29 05:32:46,675 [INFO]   2...
+2026-09-29 05:32:47,676 [INFO]   1...
+2026-09-29 05:32:48,677 [INFO] Bot BAŞLADI!
+2026-09-29 05:32:48,677 [INFO] 
+========================================
+2026-09-29 05:32:48,677 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:32:48,677 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:32:48,677 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:32:50,279 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 05:32:50,279 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:32:51,651 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:32:54,201 [INFO] [OCR YENİ MESAJ] 'lofer bah9'
+2026-09-29 05:32:56,928 [INFO] [OCR YENİ MESAJ] 'lufar bah9'
+2026-09-29 05:32:57,790 [INFO] [OCR YENİ MESAJ] 'lufer baly'
+2026-09-29 05:33:04,673 [INFO] [OCR YENİ MESAJ] 'lüfer bahg okay: takıbf gibi g%rünüvor ,'
+2026-09-29 05:33:04,674 [INFO] [NORMAL] Takılma tespit edildi → minigame oynuyorum. ('lüfer bahg okay: takıbf gibi g%rünüvor ,')
+2026-09-29 05:33:04,674 [INFO] [STATE 1] Karar: play ← 'lüfer bahg okay: takıbf gibi g%rünüvor ,'
+2026-09-29 05:33:04,790 [INFO] 
+========================================
+2026-09-29 05:33:04,790 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:33:04,791 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:21
+2026-09-29 05:33:04,791 [INFO] [STATE 2] Karar aşaması...
+2026-09-29 05:33:04,791 [INFO] [STATE 2] → Minigame oynuyorum! Oltayı çekiyorum...
+2026-09-29 05:33:07,159 [INFO] 
+========================================
+2026-09-29 05:33:07,159 [INFO] [DÖNGÜ] Mevcut State: MINIGAME
+2026-09-29 05:33:07,159 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:23
+2026-09-29 05:33:07,159 [INFO] [STATE 3] Minigame başlıyor...
+2026-09-29 05:33:08,320 [INFO] [STATE 3] Minigame penceresi kapandı.
+2026-09-29 05:33:08,321 [INFO] [STATE 3] Minigame bitti. Toplam tıklama: 0
+2026-09-29 05:33:08,396 [INFO] 
+========================================
+2026-09-29 05:33:08,397 [INFO] [DÖNGÜ] Mevcut State: ANIM_CANCEL
+2026-09-29 05:33:08,397 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:25
+2026-09-29 05:33:08,397 [INFO] [STATE 4] Animasyon iptal ediliyor (Ctrl+G x2)...
+2026-09-29 05:33:09,588 [INFO] [STATE 4] Bineğe binildi.
+2026-09-29 05:33:10,465 [INFO] [STATE 4] Binekten inildi.
+2026-09-29 05:33:11,090 [INFO] 
+========================================
+2026-09-29 05:33:11,090 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:33:11,091 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:27
+2026-09-29 05:33:11,091 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:33:12,849 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 05:33:12,849 [INFO] [STATE 1] Snapshot alındı. Olta atılıyor...
+2026-09-29 05:33:14,275 [INFO] [STATE 1] Chat taranıyor (sadece yeni satırlar)...
+2026-09-29 05:33:17,801 [INFO] [OCR YENİ MESAJ] 'büyck sudk b4kgı'
+2026-09-29 05:33:18,695 [INFO] [OCR YENİ MESAJ] 'buyck sudsk b4nı'
+2026-09-29 05:33:19,576 [INFO] [OCR YENİ MESAJ] 'büyck sudsk bakgı'
+2026-09-29 05:33:20,455 [INFO] [OCR YENİ MESAJ] 'büyck sudk b4ngı'
+2026-09-29 05:33:21,395 [INFO] [OCR YENİ MESAJ] 'buyck sudsk b4ngı'
+2026-09-29 05:33:22,350 [INFO] [OCR YENİ MESAJ] 'büyck sudek b/ngı'
+2026-09-29 05:33:23,237 [INFO] [OCR YENİ MESAJ] 'buyuk sudsk b4kı'
+2026-09-29 05:33:24,205 [INFO] [OCR YENİ MESAJ] 'büyck sudsk b4kgı'
+2026-09-29 05:33:25,110 [INFO] [OCR YENİ MESAJ] 'buyck sudsk b4ngi'
+2026-09-29 05:33:26,007 [INFO] [OCR YENİ MESAJ] 'büyck sudek b4kgı'
+2026-09-29 05:33:26,899 [INFO] [OCR YENİ MESAJ] 'buyck sudek b4nı'
+2026-09-29 05:33:27,811 [INFO] [OCR YENİ MESAJ] 'buyck sudsk b4kgı'
+2026-09-29 05:33:28,638 [INFO] [OCR YENİ MESAJ] 'büyck sudek bakgı'
+2026-09-29 05:33:28,702 [INFO] [STATE 1] Bot durduruldu, tarama iptal.
+2026-09-29 05:33:28,755 [INFO] Bot kapatıldı.
+2026-09-29 05:33:28,755 [INFO] Son istatistikler: {'total_casts': 2, 'hits': 0, 'misses': 0, 'valuable_fish': 1, 'worthless_fish': 0, 'session_start': 1790649163.1686492}
+2026-09-29 05:48:59,602 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:49:01,220 [INFO] EasyOCR hazır.
+2026-09-29 05:49:01,221 [INFO] ============================================================
+2026-09-29 05:49:01,221 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:49:01,221 [INFO] Mod          : NORMAL
+2026-09-29 05:49:01,222 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:49:01,222 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:49:01,222 [INFO] ============================================================
+2026-09-29 05:49:01,222 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:49:01,723 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:49:01,723 [INFO]   5...
+2026-09-29 05:49:02,724 [INFO]   4...
+2026-09-29 05:49:03,724 [INFO]   3...
+2026-09-29 05:49:04,725 [INFO]   2...
+2026-09-29 05:49:05,725 [INFO]   1...
+2026-09-29 05:49:06,726 [INFO] Bot BAŞLADI!
+2026-09-29 05:49:06,726 [INFO] 
+========================================
+2026-09-29 05:49:06,726 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:49:06,726 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:49:06,726 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:49:08,354 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 05:49:08,355 [INFO] [STATE 1] Snapshot alındı.
+2026-09-29 05:49:09,932 [INFO] 
+========================================
+2026-09-29 05:49:09,933 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:49:09,933 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:08
+2026-09-29 05:49:09,933 [INFO] [STATE 2] Balık bekleniyor (Chat taranıyor)...
+2026-09-29 05:49:09,933 [ERROR] [HATA] Beklenmedik hata: 'MinigameAnalyzer' object has no attribute '_is_minigame_closed'
+Traceback (most recent call last):
+  File "c:\Projects\fisherman\fisherman.py", line 1115, in run
+    self.state = self.state_decision()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "c:\Projects\fisherman\fisherman.py", line 839, in state_decision
+    if self.minigame._is_minigame_closed():
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MinigameAnalyzer' object has no attribute '_is_minigame_closed'
+2026-09-29 05:49:09,936 [INFO] Bot kapatıldı.
+2026-09-29 05:49:09,936 [INFO] Son istatistikler: {'total_casts': 1, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790650141.2215757}
+2026-09-29 05:49:24,299 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:49:25,768 [INFO] EasyOCR hazır.
+2026-09-29 05:49:25,768 [INFO] ============================================================
+2026-09-29 05:49:25,769 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:49:25,769 [INFO] Mod          : NORMAL
+2026-09-29 05:49:25,769 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:49:25,769 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:49:25,769 [INFO] ============================================================
+2026-09-29 05:49:25,770 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:49:26,271 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:49:26,271 [INFO]   5...
+2026-09-29 05:49:27,272 [INFO]   4...
+2026-09-29 05:49:28,272 [INFO]   3...
+2026-09-29 05:49:29,273 [INFO]   2...
+2026-09-29 05:49:30,274 [INFO]   1...
+2026-09-29 05:49:31,274 [INFO] Bot BAŞLADI!
+2026-09-29 05:49:31,275 [INFO] Bot kapatıldı.
+2026-09-29 05:49:31,275 [INFO] Son istatistikler: {'total_casts': 0, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790650165.7689083}
+2026-09-29 05:50:29,545 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:50:31,113 [INFO] EasyOCR hazır.
+2026-09-29 05:50:31,114 [INFO] ============================================================
+2026-09-29 05:50:31,114 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:50:31,114 [INFO] Mod          : NORMAL
+2026-09-29 05:50:31,114 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:50:31,114 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:50:31,115 [INFO] ============================================================
+2026-09-29 05:50:31,116 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:50:31,617 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:50:31,617 [INFO]   5...
+2026-09-29 05:50:32,618 [INFO]   4...
+2026-09-29 05:50:33,618 [INFO]   3...
+2026-09-29 05:50:34,619 [INFO]   2...
+2026-09-29 05:50:35,619 [INFO]   1...
+2026-09-29 05:50:36,620 [INFO] Bot BAŞLADI!
+2026-09-29 05:50:36,621 [INFO] 
+========================================
+2026-09-29 05:50:36,621 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:50:36,621 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:50:36,621 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:50:38,182 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 05:50:38,183 [INFO] [STATE 1] Snapshot alındı.
+2026-09-29 05:50:39,590 [INFO] 
+========================================
+2026-09-29 05:50:39,590 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:50:39,590 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:08
+2026-09-29 05:50:39,590 [INFO] [STATE 2] Balık bekleniyor (Chat taranıyor)...
+2026-09-29 05:50:39,590 [ERROR] [HATA] Beklenmedik hata: 'MinigameAnalyzer' object has no attribute '_is_minigame_closed'
+Traceback (most recent call last):
+  File "c:\Projects\fisherman\fisherman.py", line 1115, in run
+    self.state = self.state_decision()
+                 ~~~~~~~~~~~~~~~~~~~^^
+  File "c:\Projects\fisherman\fisherman.py", line 839, in state_decision
+    if self.minigame._is_minigame_closed():
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MinigameAnalyzer' object has no attribute '_is_minigame_closed'
+2026-09-29 05:50:39,591 [INFO] Bot kapatıldı.
+2026-09-29 05:50:39,591 [INFO] Son istatistikler: {'total_casts': 1, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790650231.1142428}
+2026-09-29 05:52:47,419 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:52:48,903 [INFO] EasyOCR hazır.
+2026-09-29 05:52:48,904 [INFO] ============================================================
+2026-09-29 05:52:48,904 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:52:48,904 [INFO] Mod          : NORMAL
+2026-09-29 05:52:48,904 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:52:48,904 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:52:48,905 [INFO] ============================================================
+2026-09-29 05:52:48,905 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:52:49,406 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:52:49,406 [INFO]   5...
+2026-09-29 05:52:50,406 [INFO]   4...
+2026-09-29 05:52:51,407 [INFO]   3...
+2026-09-29 05:52:52,407 [INFO]   2...
+2026-09-29 05:52:53,408 [INFO]   1...
+2026-09-29 05:52:54,409 [INFO] Bot BAŞLADI!
+2026-09-29 05:52:54,409 [INFO] 
+========================================
+2026-09-29 05:52:54,409 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:52:54,409 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:52:54,410 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:52:56,064 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 05:52:56,064 [INFO] [STATE 1] Snapshot alındı.
+2026-09-29 05:52:57,533 [INFO] 
+========================================
+2026-09-29 05:52:57,533 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:52:57,534 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:08
+2026-09-29 05:52:57,534 [INFO] [STATE 2] Balık bekleniyor (Chat taranıyor)...
+2026-09-29 05:52:57,538 [WARNING] [STATE 2] Minigame penceresi kapandı (Balık gelmedi/Hata).
+2026-09-29 05:52:57,591 [INFO] 
+========================================
+2026-09-29 05:52:57,591 [INFO] [DÖNGÜ] Mevcut State: ANIM_CANCEL
+2026-09-29 05:52:57,592 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:08
+2026-09-29 05:52:57,592 [INFO] [STATE 4] Animasyon iptal ediliyor (Ctrl+G x2)...
+2026-09-29 05:52:58,853 [INFO] [STATE 4] Bineğe binildi.
+2026-09-29 05:52:59,737 [INFO] [STATE 4] Binekten inildi.
+2026-09-29 05:53:00,295 [INFO] 
+========================================
+2026-09-29 05:53:00,295 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:53:00,296 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:11
+2026-09-29 05:53:00,296 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:53:02,044 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 05:53:02,044 [INFO] [STATE 1] Snapshot alındı.
+2026-09-29 05:53:03,635 [INFO] 
+========================================
+2026-09-29 05:53:03,635 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:53:03,635 [INFO] [STATS] Cast:2 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:14
+2026-09-29 05:53:03,636 [INFO] [STATE 2] Balık bekleniyor (Chat taranıyor)...
+2026-09-29 05:53:09,403 [INFO] [STATE 2] Bot durduruldu, tarama iptal.
+2026-09-29 05:53:09,545 [INFO] Bot kapatıldı.
+2026-09-29 05:53:09,545 [INFO] Son istatistikler: {'total_casts': 2, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790650368.9043365}
+2026-09-29 05:56:25,749 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 05:56:27,375 [INFO] EasyOCR hazır.
+2026-09-29 05:56:27,375 [INFO] ============================================================
+2026-09-29 05:56:27,376 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 05:56:27,376 [INFO] Mod          : NORMAL
+2026-09-29 05:56:27,376 [INFO] Farm süresi  : 90 dk
+2026-09-29 05:56:27,376 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 05:56:27,376 [INFO] ============================================================
+2026-09-29 05:56:27,376 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 05:56:27,877 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 05:56:27,877 [INFO]   5...
+2026-09-29 05:56:28,878 [INFO]   4...
+2026-09-29 05:56:29,878 [INFO]   3...
+2026-09-29 05:56:30,879 [INFO]   2...
+2026-09-29 05:56:31,879 [INFO]   1...
+2026-09-29 05:56:32,880 [INFO] Bot BAŞLADI!
+2026-09-29 05:56:32,880 [INFO] 
+========================================
+2026-09-29 05:56:32,880 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 05:56:32,881 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 05:56:32,881 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 05:56:34,658 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 05:56:34,658 [INFO] [STATE 1] Snapshot alındı.
+2026-09-29 05:56:37,476 [INFO] 
+========================================
+2026-09-29 05:56:37,476 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 05:56:37,476 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:10
+2026-09-29 05:56:37,476 [INFO] [STATE 2] Balık bekleniyor (Chat taranıyor)...
+2026-09-29 05:56:39,414 [INFO] [OCR YENİ MESAJ] '5a33n'
+2026-09-29 05:56:55,501 [INFO] [OCR YENİ MESAJ] 'yefrw kaybatti_'
+2026-09-29 05:57:04,684 [INFO] [STATE 2] Bot durduruldu, tarama iptal.
+2026-09-29 05:57:04,747 [INFO] Bot kapatıldı.
+2026-09-29 05:57:04,747 [INFO] Son istatistikler: {'total_casts': 1, 'hits': 0, 'misses': 0, 'valuable_fish': 0, 'worthless_fish': 0, 'session_start': 1790650587.375898}
+2026-09-29 06:04:42,120 [INFO] EasyOCR başlatılıyor (ilk seferde ~30sn sürebilir)...
+2026-09-29 06:04:43,728 [INFO] EasyOCR hazır.
+2026-09-29 06:04:43,729 [INFO] ============================================================
+2026-09-29 06:04:43,729 [INFO] Metin2 Fishing Bot başlatıldı.
+2026-09-29 06:04:43,729 [INFO] Mod          : NORMAL
+2026-09-29 06:04:43,730 [INFO] Farm süresi  : 90 dk
+2026-09-29 06:04:43,730 [INFO] Durdurmak için: Sol üst köşeye fare götür
+2026-09-29 06:04:43,730 [INFO] ============================================================
+2026-09-29 06:04:43,730 [INFO] Oyun penceresi bulundu: handle=198180
+2026-09-29 06:04:44,231 [INFO] Bot 5 saniye içinde başlayacak! Karakteri balık tutma yerine getirin.
+2026-09-29 06:04:44,231 [INFO]   5...
+2026-09-29 06:04:45,232 [INFO]   4...
+2026-09-29 06:04:46,233 [INFO]   3...
+2026-09-29 06:04:47,233 [INFO]   2...
+2026-09-29 06:04:48,234 [INFO]   1...
+2026-09-29 06:04:49,235 [INFO] Bot BAŞLADI!
+2026-09-29 06:04:49,235 [INFO] 
+========================================
+2026-09-29 06:04:49,235 [INFO] [DÖNGÜ] Mevcut State: CAST
+2026-09-29 06:04:49,235 [INFO] [STATS] Cast:0 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:05
+2026-09-29 06:04:49,235 [INFO] [STATE 1] Olta atılıyor... (Mod: NORMAL)
+2026-09-29 06:04:50,872 [INFO] [SNAPSHOT] Chat referansı alındı.
+2026-09-29 06:04:50,873 [INFO] [STATE 1] Snapshot alındı.
+2026-09-29 06:04:53,751 [INFO] 
+========================================
+2026-09-29 06:04:53,751 [INFO] [DÖNGÜ] Mevcut State: DECISION
+2026-09-29 06:04:53,751 [INFO] [STATS] Cast:1 | Değerli:0 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:10
+2026-09-29 06:04:53,751 [INFO] [STATE 2] Balık bekleniyor (Chat taranıyor)...
+2026-09-29 06:04:54,520 [INFO] [OCR YENİ MESAJ] 'sazan dltaya takılmiş gbl gorünüyor _'
+2026-09-29 06:04:54,521 [INFO] [NORMAL] Eşleşmeyen yeni mesaj: KESİNLİKLE OYNUYORUM! ('sazan dltaya takılmiş gbl gorünüyor _')
+2026-09-29 06:04:54,521 [INFO] [STATE 2] Balık geldi: OYNUYORUM! (sazan dltaya takılmiş gbl gorünüyor _)
+2026-09-29 06:04:54,633 [INFO] 
+========================================
+2026-09-29 06:04:54,633 [INFO] [DÖNGÜ] Mevcut State: MINIGAME
+2026-09-29 06:04:54,633 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:10
+2026-09-29 06:04:54,634 [INFO] [STATE 3] Minigame başlıyor...
+2026-09-29 06:05:08,772 [INFO] [STATE 3] CLICK! Mesafe: 6.1px | Kırmızı: False
+2026-09-29 06:05:12,056 [INFO] [STATE 3] CLICK! Mesafe: 6.1px | Kırmızı: False
+2026-09-29 06:05:15,278 [INFO] [STATE 3] CLICK! Mesafe: 9.1px | Kırmızı: False
+2026-09-29 06:05:18,612 [INFO] [STATE 3] CLICK! Mesafe: 6.3px | Kırmızı: False
+2026-09-29 06:05:21,952 [INFO] [STATE 3] CLICK! Mesafe: 6.1px | Kırmızı: False
+2026-09-29 06:05:25,284 [WARNING] [STATE 3] Minigame zaman aşımı!
+2026-09-29 06:05:25,284 [INFO] [STATE 3] Minigame bitti. Toplam tıklama: 5
+2026-09-29 06:05:25,399 [INFO] 
+========================================
+2026-09-29 06:05:25,400 [INFO] [DÖNGÜ] Mevcut State: ANIM_CANCEL
+2026-09-29 06:05:25,400 [INFO] [STATS] Cast:1 | Değerli:1 | Değersiz:0 | Hit:0 | Miss:0 | Süre:00:00:41
+2026-09-29 06:05:25,400 [INFO] [STATE 4] Animasyon iptal ediliyor (Ctrl+G x2)...
+2026-09-29 06:05:26,599 [INFO] [STATE 4] Bineğe binildi.
+2026-09-29 06:05:27,390 [INFO] [STATE 4] Binekten inildi.
+2026-09-29 06:05:28,065 [INFO] Bot kapatıldı.
+2026-09-29 06:05:28,065 [INFO] Son istatistikler: {'total_casts': 1, 'hits': 0, 'misses': 0, 'valuable_fish': 1, 'worthless_fish': 0, 'session_start': 1790651083.7295494}

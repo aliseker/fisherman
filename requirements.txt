@@ -1,0 +1,10 @@
+mss>=9.0.1
+opencv-python>=4.8.0
+numpy>=1.24.0
+pydirectinput>=1.0.4
+pywin32>=306
+Pillow>=10.0.0
+
+# OCR - İkisinden birini kurun (easyocr önerilir, yoksa pytesseract dener)
+easyocr>=1.7.0
+# pytesseract>=0.3.10  # fallback - Tesseract binary de gerekir
