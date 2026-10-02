@@ -214,7 +214,12 @@ class ChatReader:
         for keyword, should_catch in self.config.whitelist.items():
             score = self._best_score(keyword, text)
             log.debug(f"[SCORE] '{keyword}' -> {score:.3f}")
-            if score > best_score:
+            # Tie-break: skorlar çok yakınsa (≤0.01 fark) daha uzun (spesifik) keyword kazansın.
+            # Bu sayede "altın sudak" ile "sudak" yarışırken spesifik olan öne geçer.
+            is_better = score > best_score + 0.01
+            is_equally_good = abs(score - best_score) <= 0.01
+            is_more_specific = len(keyword) > len(best_keyword or "")
+            if is_better or (is_equally_good and is_more_specific):
                 best_score        = score
                 best_keyword      = keyword
                 best_should_catch = should_catch
@@ -227,8 +232,15 @@ class ChatReader:
                 log.info(f"[WHITELIST SKIP] '{best_keyword}' (skor: {best_score:.2f}) istenmiyor. Iptal.")
                 return "skip"
 
-        log.warning(f"[WHITELIST UNKNOWN] Tanimlanamayan metin (en iyi: '{best_keyword}' @ {best_score:.2f}). OYNUYORUZ! ({text[:50]})")
-        return "play"
+        # Whitelist tanımlıysa bilinmeyen balık = istemiyoruz demektir → skip.
+        # (Lüfer, tekir vb. whitelist'te yoksa yanlışlıkla yakalanmasın.)
+        # Whitelist tamamen boşsa kullanıcı filtreleme yapmıyor olabilir → play.
+        if self.config.whitelist:
+            log.warning(f"[WHITELIST UNKNOWN] Tanimlanamayan metin, whitelist aktif → atlanıyor. (en iyi: '{best_keyword}' @ {best_score:.2f}) ({text[:50]})")
+            return "skip"
+        else:
+            log.warning(f"[WHITELIST UNKNOWN] Whitelist bos, tanimlanamayan metin → OYNUYORUZ! ({text[:50]})")
+            return "play"
 
 # ===========================================================================
 # MULTI-THREAD MINIGAME CORE (Producer-Consumer)
