@@ -24,8 +24,15 @@ import sys
 import os
 import json
 
+import subprocess
+import urllib.request
+import webbrowser
+
 sys.path.insert(0, os.path.dirname(__file__))
-from fisherman import FisherConfig, AppState, FishingHelper, _OCR_BACKEND
+from fisherman import (FisherConfig, AppState, FishingHelper, _OCR_BACKEND, _REMOTE_OCR_URL,
+                       load_session, reset_session)
+
+PRICE_REFRESH_MIN = 60   # bot çalışırken fiyatlar kaç dakikada bir siteden yenilensin
 
 
 # ===========================================================================
@@ -158,10 +165,15 @@ class FisherPanel(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("⚓ Metin2 Fishing Helper")
-        self.geometry("490x750")
+        self.geometry("500x830")
         self.resizable(True, True)
         self.configure(bg=self.BG)
         self.attributes("-topmost", True)
+
+        # (Yerel modda OCR zaten bu işlemin içinde GPU ile çalışır; ayrı servis başlatılmaz.
+        #  ocr_server.py yalnızca sanal makineler için ocr_servisi_baslat.bat ile elle açılır.)
+        self._ocr_proc: subprocess.Popen | None = None
+        self._price_stop = threading.Event()
 
         # Çalışma zamanı ROI'lar (panel üzerinden ayarlanabilir)
         self._chat_roi    = {"top": 620, "left": 130, "width": 500, "height": 70}
@@ -227,8 +239,15 @@ class FisherPanel(tk.Tk):
                  font=("Segoe UI Semibold", 13),
                  fg=self.TEXT, bg=self.ACCENT,
                  ).pack(side="left", padx=14, pady=10)
+        
+        ocr_text = f"OCR: {_OCR_BACKEND.upper()}"
+        if _REMOTE_OCR_URL:
+            ocr_text = "OCR: Uzak Servis"
+        elif _OCR_BACKEND == "easyocr":
+            ocr_text = "OCR: GPU (yerel)"
+            
         self._ocr_label = tk.Label(
-            header, text=f"OCR: {_OCR_BACKEND}",
+            header, text=ocr_text,
             font=self.FONT_UI, fg=self.GREEN, bg=self.ACCENT,
         )
         self._ocr_label.pack(side="right", padx=14)
@@ -347,6 +366,54 @@ class FisherPanel(tk.Tk):
             tk.Label(cell, textvariable=var,
                      font=("Segoe UI Semibold", 15),
                      fg=self.TEXT, bg=self.SURFACE).pack(anchor="w")
+
+        # ── 💰 Kazanç & Piyasa Değeri ─────────────────────────────────────────
+        earn_frame = tk.LabelFrame(self, text=" 💰 Tahmini Kazanç & Piyasa Değeri ",
+                                   bg=self.SURFACE, fg=self.GOLD,
+                                   font=self.FONT_H, bd=1, relief="flat")
+        earn_frame.pack(fill="x", padx=10, pady=(4, 4))
+
+        won_row = tk.Frame(earn_frame, bg=self.SURFACE)
+        won_row.pack(fill="x", padx=10, pady=(6, 2))
+        self._won_label = tk.Label(won_row, text="0.00 Won",
+                                   font=("Segoe UI Semibold", 16),
+                                   fg=self.GOLD, bg=self.SURFACE)
+        self._won_label.pack(side="left")
+        self._yang_label = tk.Label(won_row, text="(0 Yang)",
+                                    font=self.FONT_UI,
+                                    fg=self.DIM, bg=self.SURFACE)
+        self._yang_label.pack(side="left", padx=8)
+
+        self._catch_rate_label = tk.Label(earn_frame,
+                                          text="Tutulan: 0 | Kaçan: 0  (Başarı: %0)",
+                                          font=self.FONT_UI, fg=self.GREEN, bg=self.SURFACE)
+        self._catch_rate_label.pack(anchor="w", padx=10, pady=(0, 6))
+
+        earn_btn_row = tk.Frame(earn_frame, bg=self.SURFACE)
+        earn_btn_row.pack(fill="x", padx=10, pady=(0, 4))
+        
+        tk.Button(earn_btn_row, text="📊  Balık Detayları & Kazanç",
+                  font=self.FONT_UI, bg=self.ACCENT, fg=self.TEXT,
+                  relief="flat", cursor="hand2", padx=10, pady=4,
+                  command=self._open_earnings_modal).pack(side="left", fill="x", expand=True, padx=(0, 4))
+                  
+        tk.Button(earn_btn_row, text="✏️  Birim Fiyatları Düzenle",
+                  font=self.FONT_UI, bg="#2a5298", fg="#ffffff",
+                  activebackground="#1e3c72", activeforeground="#ffffff",
+                  relief="flat", cursor="hand2", padx=10, pady=4,
+                  command=self._open_price_editor).pack(side="right", fill="x", expand=True, padx=(4, 0))
+
+        tk.Button(earn_frame, text="🌐  Siteden Canlı Fiyatları Güncelle (DostGame Lucifer)",
+                  font=("Segoe UI Semibold", 10), bg="#1e5f74", fg="#ffffff",
+                  activebackground="#133b47", activeforeground="#ffffff",
+                  relief="flat", cursor="hand2", padx=10, pady=5,
+                  command=self._update_prices_from_web).pack(fill="x", padx=10, pady=(2, 4))
+
+        tk.Button(earn_frame, text="♻️  Sayaçları ve Süreyi Sıfırla",
+                  font=self.FONT_UI, bg="#5a2a2a", fg="#ffffff",
+                  activebackground="#7a3a3a", activeforeground="#ffffff",
+                  relief="flat", cursor="hand2", padx=10, pady=3,
+                  command=self._reset_counters).pack(fill="x", padx=10, pady=(0, 8))
 
         # ── Log ─────────────────────────────────────────────────────────────
         log_header = tk.Frame(self, bg=self.BG)
@@ -555,21 +622,43 @@ class FisherPanel(tk.Tk):
             # FishingHelper.__init__ içinde ChatReader çağrılır →
             # EasyOCR modeli burada (arka planda) yüklenir
             self._helper = FishingHelper(config=config)
+            # Oyuna geçiş geri sayımından ÖNCE güncel fiyatlar siteden çekilir (buton bu sürede kilitli)
+            self.after(0, lambda: self._status_label.config(text="DostGame fiyatları çekiliyor...", fg="#ffd700"))
+            self._fetch_prices_blocking(restore_focus=False)
             # Yüklenme bitti, UI'ye sinyal gönder
             self.after(0, self._set_status_running)
+            # Fiyat çekme süresi çalışma süresine sayılmasın
+            self._helper.stats["session_start"] = time.time() - float(load_session().get("active_seconds", 0))
+            self._price_stop.clear()
+            threading.Thread(target=self._price_refresh_loop, daemon=True, name="PriceLoop").start()
             self._helper.run()
         except Exception as e:
             logging.getLogger("Fisher").exception(f"Hata: {e}")
         finally:
+            self._price_stop.set()
             self._running = False
             self.after(0, self._set_status_stopped)
 
     def _stop_app(self) -> None:
+        self._price_stop.set()
         if self._helper:
             self._helper.running = False
             self._helper.state = AppState.STOPPED
+            self._helper.save_session()
         self._running = False
         self._set_status_stopped()
+
+    # -----------------------------------------------------------------------
+    # Sayaç sıfırlama
+    # -----------------------------------------------------------------------
+    def _reset_counters(self) -> None:
+        if self._running:
+            self._append_log("⚠️ Sayaçları sıfırlamak için önce botu durdur.")
+            return
+        reset_session()
+        self._helper = None
+        self._show_stats(load_session(), running=False)
+        self._append_log("♻️ Sayaçlar, süre ve kazanç sıfırlandı.")
 
     # -----------------------------------------------------------------------
     # Durum
@@ -634,21 +723,273 @@ class FisherPanel(tk.Tk):
     # -----------------------------------------------------------------------
     def _poll_stats(self) -> None:
         if self._helper and self._running:
-            stats = self._helper.stats
-            elapsed = int(time.time() - stats.get("session_start", time.time()))
-            h, m, s = elapsed // 3600, (elapsed % 3600) // 60, elapsed % 60
-            self._stat_vars["total_casts"].set(str(stats.get("total_casts", 0)))
-            self._stat_vars["hits"].set(str(stats.get("hits", 0)))
-            self._stat_vars["misses"].set(str(stats.get("misses", 0)))
-            self._stat_vars["valuable_fish"].set(str(stats.get("valuable_fish", 0)))
-            self._stat_vars["worthless_fish"].set(str(stats.get("worthless_fish", 0)))
-            self._stat_vars["duration"].set(f"{h:02d}:{m:02d}:{s:02d}")
+            self._show_stats(self._helper.stats, running=True)
             try:
                 self._state_label.config(
                     text=f"[{self._helper.state.name}]", fg=self.DIM)
             except Exception:
                 pass
+        elif not self._running and not self._helper and not getattr(self, "_saved_shown", False):
+            # Panel yeni açıldı: önceki oturumdan kalan sayaç ve kazancı göster
+            self._saved_shown = True
+            self._show_stats(self._saved_to_stats(load_session()), running=False)
         self.after(1000, self._poll_stats)
+
+    @staticmethod
+    def _saved_to_stats(saved: dict) -> dict:
+        """oturum.json içeriğini panelin gösterebileceği stats sözlüğüne çevirir (kazancı fiyatlardan hesaplar)."""
+        st = dict(saved)
+        st["session_start"] = time.time() - float(saved.get("active_seconds", 0))
+        total = 0
+        try:
+            with open("fiyatlar.json", "r", encoding="utf-8") as f:
+                fiyat = json.load(f)
+        except Exception:
+            fiyat = {}
+        for name, cnt in (saved.get("caught_fish") or {}).items():
+            fn = name.lower().strip()
+            info = fiyat.get(fn) or next((v for k, v in fiyat.items() if k in fn or fn in k), {})
+            total += cnt * (info.get("birim_yang", 0) if isinstance(info, dict) else int(info or 0))
+        st["total_yang"] = total
+        st["total_won"] = round(total / 100_000_000, 3)
+        return st
+
+    def _show_stats(self, stats: dict, running: bool) -> None:
+        elapsed = int(time.time() - stats.get("session_start", time.time())) if stats else 0
+        h, m, s = elapsed // 3600, (elapsed % 3600) // 60, elapsed % 60
+        self._stat_vars["total_casts"].set(str(stats.get("total_casts", 0)))
+        self._stat_vars["hits"].set(str(stats.get("hits", 0)))
+        self._stat_vars["misses"].set(str(stats.get("misses", 0)))
+        self._stat_vars["valuable_fish"].set(str(stats.get("valuable_fish", 0)))
+        self._stat_vars["worthless_fish"].set(str(stats.get("worthless_fish", 0)))
+        self._stat_vars["duration"].set(f"{h:02d}:{m:02d}:{s:02d}")
+
+        total_won = stats.get("total_won", 0.0)
+        total_yang = stats.get("total_yang", 0)
+        caught = stats.get("caught_count", 0)
+        escaped = stats.get("escaped_count", 0)
+        total_bites = caught + escaped
+        rate = (caught / total_bites * 100) if total_bites > 0 else 0
+
+        self._won_label.config(text=f"{total_won:.3f} Won")
+        self._yang_label.config(text=f"({total_yang:,} Yang)")
+        self._catch_rate_label.config(text=f"Tutulan: {caught} | Kaçan: {escaped}  (Başarı: %{rate:.1f})")
+
+    # -----------------------------------------------------------------------
+    # DostGame canlı fiyat çekme
+    # -----------------------------------------------------------------------
+    def _fetch_prices_blocking(self, restore_focus: bool = True) -> None:
+        """Fiyatları DostGame'den çeker (bloklar). Hata olursa eski fiyatlar korunur.
+        restore_focus=True ise (bot çalışırken) işlem bitince oyun penceresine odak geri verilir."""
+        fg = None
+        if restore_focus:
+            try:
+                import win32gui
+                fg = win32gui.GetForegroundWindow()
+            except Exception:
+                fg = None
+        try:
+            from fiyat_guncelleyici import fetch_live_prices
+            res = fetch_live_prices(
+                progress_callback=lambda msg: self.after(0, lambda m=msg: self._append_log(m)))
+            items = []
+            for k, v in res.items():
+                val = v.get("birim_yang", 0) if isinstance(v, dict) else v
+                items.append(f"{k.title()}: {val/1_000_000:.2f}M")
+            self.after(0, lambda: self._append_log("🎉 [FİYAT] Güncel fiyatlar: " + ", ".join(items)))
+            if self._helper:
+                self._helper._update_earnings()
+        except Exception as e:
+            self.after(0, lambda: self._append_log(f"⚠️ [FİYAT] Fiyat çekilemedi, eski fiyatlar kullanılacak: {e}"))
+        finally:
+            if fg:
+                try:
+                    import win32gui, win32api, win32con
+                    time.sleep(0.5)
+                    # Windows'un odak çalma korumasını aşmak için kısa bir ALT tuş darbesi
+                    win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
+                    win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+                    win32gui.SetForegroundWindow(fg)
+                except Exception:
+                    pass
+
+    def _price_refresh_loop(self) -> None:
+        """Bot çalıştığı sürece fiyatları PRICE_REFRESH_MIN dakikada bir arka planda yeniler."""
+        while not self._price_stop.wait(PRICE_REFRESH_MIN * 60):
+            if not self._running:
+                break
+            self._fetch_prices_blocking(restore_focus=True)
+
+    # -----------------------------------------------------------------------
+    # Kazanç & Piyasa Modalı
+    # -----------------------------------------------------------------------
+    def _open_earnings_modal(self) -> None:
+        modal = tk.Toplevel(self)
+        modal.title("💰 Balık Detayları & Piyasa Değeri")
+        modal.geometry("520x600")
+        modal.configure(bg=self.BG)
+        modal.attributes("-topmost", True)
+
+        top = tk.Frame(modal, bg=self.ACCENT, pady=10)
+        top.pack(fill="x")
+        tk.Label(top, text="📊 Yakalanan Balıklar & Piyasa Karşılığı",
+                 bg=self.ACCENT, fg=self.TEXT, font=self.FONT_H).pack()
+
+        # Fiyatları yükle
+        fiyatlar = {}
+        if os.path.exists("fiyatlar.json"):
+            try:
+                with open("fiyatlar.json", "r", encoding="utf-8") as f:
+                    fiyatlar = json.load(f)
+            except Exception:
+                pass
+
+        # Liste Container
+        canvas = tk.Canvas(modal, bg=self.BG, highlightthickness=0)
+        scrollbar = tk.Scrollbar(modal, orient="vertical", command=canvas.yview)
+        scrollable = tk.Frame(canvas, bg=self.BG)
+
+        scrollable.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=scrollable, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="top", fill="both", expand=True, padx=8, pady=8)
+        scrollbar.pack(side="right", fill="y", before=canvas)
+
+        caught_fish = self._helper.stats.get("caught_fish", {}) if self._helper else {}
+        total_won = self._helper.stats.get("total_won", 0.0) if self._helper else 0.0
+        total_yang = self._helper.stats.get("total_yang", 0) if self._helper else 0
+
+        # Başlık Özeti
+        summary_f = tk.Frame(scrollable, bg=self.SURFACE, pady=10, padx=12)
+        summary_f.pack(fill="x", pady=4, padx=5)
+        tk.Label(summary_f, text=f"Toplam Kazanç: {total_won:.3f} Won ({total_yang:,} Yang)",
+                 font=("Segoe UI Semibold", 13), fg=self.GOLD, bg=self.SURFACE).pack(anchor="w")
+        tk.Label(summary_f, text="* 1 Won = 100M Yang (DostGame Lucifer piyasa fiyatlarına göre)",
+                 font=("Segoe UI", 9), fg=self.DIM, bg=self.SURFACE).pack(anchor="w", pady=(2, 0))
+
+        if not caught_fish:
+            tk.Label(scrollable, text="\nHenüz balık tutulmadı.\nBot balık tuttukça burada adet ve Won değerleri listelenir.",
+                     font=self.FONT_UI, fg=self.DIM, bg=self.BG, justify="center").pack(pady=30)
+        else:
+            for fish_name, count in caught_fish.items():
+                row = tk.Frame(scrollable, bg=self.SURFACE, pady=8, padx=10)
+                row.pack(fill="x", pady=3, padx=5)
+
+                fn = fish_name.lower().strip()
+                item_info = fiyatlar.get(fn, {})
+                if not item_info:
+                    for k, v in fiyatlar.items():
+                        if k in fn or fn in k:
+                            item_info = v
+                            break
+                birim_yang = item_info.get("birim_yang", 0) if isinstance(item_info, dict) else int(item_info or 0)
+                fish_total_yang = count * birim_yang
+                fish_total_won = fish_total_yang / 100_000_000
+
+                tk.Label(row, text=f"🐟 {fish_name.title()}",
+                         font=("Segoe UI Semibold", 11), fg=self.TEXT, bg=self.SURFACE).pack(anchor="w")
+                detail_txt = f"{count} Adet  |  Birim: {birim_yang:,} Yang ({birim_yang/100_000_000:.3f} Won)  |  Toplam: {fish_total_won:.3f} Won"
+                tk.Label(row, text=detail_txt, font=self.FONT_UI, fg=self.GREEN, bg=self.SURFACE).pack(anchor="w", pady=(2, 0))
+
+        # Alt Butonlar
+        bot_bar = tk.Frame(modal, bg=self.BG, pady=10)
+        bot_bar.pack(fill="x", side="bottom", padx=10)
+
+        tk.Button(bot_bar, text="🌐  Siteden Canlı Fiyatları Çek (Lucifer)",
+                  font=self.FONT_UI, bg="#1e5f74", fg=self.TEXT,
+                  relief="flat", cursor="hand2", pady=6,
+                  command=lambda: [modal.destroy(), self._update_prices_from_web()]).pack(fill="x", pady=(0, 4))
+
+        tk.Button(bot_bar, text="✏️  Fiyatları Düzenle (fiyatlar.json)",
+                  font=self.FONT_UI, bg=self.ACCENT, fg=self.TEXT,
+                  relief="flat", cursor="hand2", pady=6,
+                  command=lambda: [modal.destroy(), self._open_price_editor()]).pack(fill="x", pady=(0, 4))
+
+        tk.Button(bot_bar, text="🔗  DostGame Ticaret Camını Tarayıcıda Aç",
+                  font=self.FONT_UI, bg="#33334d", fg=self.TEXT,
+                  relief="flat", cursor="hand2", pady=6,
+                  command=lambda: webbrowser.open("https://www.dostgame.com/tr/metin2-ticaret-cami/ruby-lucifer")).pack(fill="x")
+
+    def _update_prices_from_web(self) -> None:
+        """DostGame pazar camından güncel balık fiyatlarını arka planda çeker."""
+        self._append_log("🌐 [FİYAT] DostGame Ruby Lucifer'dan canlı fiyatlar çekiliyor, lütfen bekle...")
+        threading.Thread(target=lambda: self._fetch_prices_blocking(restore_focus=True),
+                         daemon=True, name="PriceFetcher").start()
+
+    # -----------------------------------------------------------------------
+    # Fiyat Düzenleyici
+    # -----------------------------------------------------------------------
+    def _open_price_editor(self) -> None:
+        editor = tk.Toplevel(self)
+        editor.title("✏️ Balık Birim Fiyatları Düzenle")
+        editor.geometry("480x620")
+        editor.configure(bg=self.BG)
+        editor.attributes("-topmost", True)
+
+        top = tk.Frame(editor, bg=self.ACCENT, pady=10)
+        top.pack(fill="x")
+        tk.Label(top, text="Piyasa Birim Fiyatları (Yang Cinsinden)",
+                 bg=self.ACCENT, fg=self.TEXT, font=self.FONT_H).pack()
+        tk.Label(top, text="Örnek: 1.5m için 1500000 yazın (1 Won = 100.000.000 Yang)",
+                 bg=self.ACCENT, fg=self.DIM, font=("Segoe UI", 9)).pack()
+
+        fiyatlar = {}
+        if os.path.exists("fiyatlar.json"):
+            try:
+                with open("fiyatlar.json", "r", encoding="utf-8") as f:
+                    fiyatlar = json.load(f)
+            except Exception:
+                pass
+
+        canvas = tk.Canvas(editor, bg=self.BG, highlightthickness=0)
+        scrollbar = tk.Scrollbar(editor, orient="vertical", command=canvas.yview)
+        scrollable = tk.Frame(canvas, bg=self.BG)
+        scrollable.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=scrollable, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="top", fill="both", expand=True, padx=6, pady=6)
+        scrollbar.pack(side="right", fill="y", before=canvas)
+
+        entries = {}
+        for item, data in fiyatlar.items():
+            f = tk.Frame(scrollable, bg=self.SURFACE, pady=5, padx=8)
+            f.pack(fill="x", pady=2, padx=4)
+
+            tk.Label(f, text=item.title(), font=self.FONT_H, fg=self.TEXT, bg=self.SURFACE, width=18, anchor="w").pack(side="left")
+
+            val = data.get("birim_yang", 0) if isinstance(data, dict) else int(data or 0)
+            ent = tk.Entry(f, font=self.FONT_MONO, width=14, justify="right", bg="#0d0d1a", fg="#b0ffb0", insertbackground=self.TEXT)
+            ent.insert(0, str(val))
+            ent.pack(side="right", padx=5)
+            tk.Label(f, text="Yang:", font=self.FONT_UI, fg=self.DIM, bg=self.SURFACE).pack(side="right")
+            entries[item] = ent
+
+        def save_prices():
+            for item, ent in entries.items():
+                try:
+                    val = int(ent.get().replace(".", "").replace(",", "").strip())
+                    if item in fiyatlar and isinstance(fiyatlar[item], dict):
+                        fiyatlar[item]["birim_yang"] = val
+                    else:
+                        fiyatlar[item] = {"birim_yang": val, "not": f"{item} birim fiyatı"}
+                except Exception:
+                    pass
+
+            with open("fiyatlar.json", "w", encoding="utf-8") as f:
+                json.dump(fiyatlar, f, ensure_ascii=False, indent=4)
+
+            if self._helper:
+                self._helper._update_earnings()
+
+            self._append_log("✅ Balık piyasa fiyatları başarıyla kaydedildi!")
+            editor.destroy()
+
+        bot = tk.Frame(editor, bg=self.BG, pady=10)
+        bot.pack(fill="x", side="bottom", padx=10)
+        tk.Button(bot, text="💾 Fiyatları Kaydet", font=("Segoe UI Semibold", 12),
+                  bg=self.GREEN, fg="#000", relief="flat", cursor="hand2", pady=8,
+                  command=save_prices).pack(fill="x")
 
     # -----------------------------------------------------------------------
     # Kapat
@@ -656,6 +997,11 @@ class FisherPanel(tk.Tk):
     def _on_close(self) -> None:
         if self._running:
             self._stop_app()
+        if self._ocr_proc:
+            try:
+                self._ocr_proc.terminate()
+            except Exception:
+                pass
         self.destroy()
 
 

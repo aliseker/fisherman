@@ -1,0 +1,9 @@
+mss>=9.0.1
+opencv-python>=4.8.0
+numpy>=1.24.0
+pydirectinput>=1.0.4
+pywin32>=306
+Pillow>=10.0.0
+# Fiyat çekme (DostGame) - VM'de Google Chrome yüklü değilse fiyat çekme atlanır, bot yine çalışır
+patchright>=1.50.0
+# NOT: easyocr/torch BİLİNÇLİ OLARAK YOK. VM'de OCR ana bilgisayardaki GPU servisinde yapılır.

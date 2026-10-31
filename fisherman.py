@@ -12,8 +12,12 @@ import math
 import difflib
 import threading
 import queue
+import re
 import logging
 import sys
+import os
+import json
+import urllib.request
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Optional, Tuple, List
@@ -33,6 +37,36 @@ try:
 except ImportError:
     easyocr = None
     _OCR_BACKEND = "none"
+
+# Uzak OCR servisi (ocr_server.py). Sanal makinelerde ekran kartı olmadığı için
+# sohbet resmi ana bilgisayardaki GPU'ya gönderilir. Örn: FISHER_OCR_URL=http://192.168.50.1:8765
+_REMOTE_OCR_URL = os.environ.get("FISHER_OCR_URL", "").strip().rstrip("/")
+if _REMOTE_OCR_URL:
+    _OCR_BACKEND = "remote"
+
+# EasyOCR modeli modül genelinde tek sefer yüklenir (Singleton).
+# Bot kaç kez durdurulup başlatılırsa başlatılsın model yeniden yüklenmez.
+_EASYOCR_READER = None
+
+def _get_ocr_reader():
+    """EasyOCR Reader singleton'ı döndürür; ilk çağrıda yükler."""
+    global _EASYOCR_READER
+    if _OCR_BACKEND != "easyocr" or easyocr is None:
+        return None
+    if _EASYOCR_READER is None:
+        log_init = logging.getLogger("FisherAppMT")
+        log_init.info("[OCR] EasyOCR modeli ilk kez yükleniyor...")
+        
+        try:
+            import torch
+            is_cuda = torch.cuda.is_available()
+            log_init.info(f"[OCR] Ekran Karti (CUDA) Aktif Mi: {'EVET (Hizli)' if is_cuda else 'HAYIR (Yavas)'}")
+        except:
+            pass
+            
+        _EASYOCR_READER = easyocr.Reader(["tr", "en"], gpu=True, verbose=False)
+        log_init.info("[OCR] EasyOCR modeli yüklendi.")
+    return _EASYOCR_READER
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,7 +89,7 @@ class AppState(Enum):
 @dataclass
 class FisherConfig:
     game_window_title: str = "metin2"
-    bait_key: str = "1"
+    bait_keys: list = field(default_factory=lambda: ["1", "2", "3", "4", "f1", "f2", "f3", "f4"])
     cast_key: str = "space"
     chat_roi: dict = field(default_factory=lambda: {"top": 620, "left": 130, "width": 500, "height": 70})
     minigame_roi: dict = field(default_factory=lambda: {"top": 200, "left": 400, "width": 300, "height": 300})
@@ -144,39 +178,70 @@ class ChatReader:
         self.config = config
         self.capture = ScreenCapture()
         self._backend = _OCR_BACKEND
-        self._reader = None
+        self._reader = _get_ocr_reader()  # Singleton — model sadece ilk seferde yüklenir
         self._last_chat_text = ""
-        if self._backend == "easyocr":
-            self._reader = easyocr.Reader(["tr", "en"], gpu=False, verbose=False)
 
     def read_chat(self) -> str:
         frame = self.capture.capture(self.config.chat_roi)
-        # 1. Görüntüyü 3 kat büyüt (OCR doğruluğunu artırır)
-        resized = cv2.resize(frame, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+        # 1. Görüntüyü 1.5 kat büyüt (Önceden 3x idi, hızı aşırı düşürüyordu. 1.5x GPU'yu uçurur.)
+        resized = cv2.resize(frame, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
         # 2. Gri tonlamaya çevir
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
         # 3. Metni siyah, arkaplanı beyaz yapmak için Otsu & Inverted Threshold
         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+        if self._backend == "remote":
+            return self._read_remote(thresh)
         if self._backend == "easyocr" and self._reader:
             results = self._reader.readtext(thresh, detail=1)
             results.sort(key=lambda r: r[0][0][1])
             return "\n".join(r[1].lower().strip() for r in results if r[1].strip())
         return ""
 
+    def _read_remote(self, img: np.ndarray) -> str:
+        """Resmi ana bilgisayardaki OCR servisine (ocr_server.py) gönderir."""
+        ok, buf = cv2.imencode(".png", img)
+        if not ok:
+            return ""
+        req = urllib.request.Request(
+            _REMOTE_OCR_URL + "/ocr", data=buf.tobytes(),
+            headers={"Content-Type": "image/png"}, method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                return json.loads(resp.read().decode("utf-8")).get("text", "")
+        except Exception as e:
+            log.warning(f"[OCR-REMOTE] Servise ulaşılamadı ({_REMOTE_OCR_URL}): {e}")
+            return ""
+
     def snapshot_baseline(self) -> None:
         self._last_chat_text = self.read_chat()
         log.info("[SNAPSHOT] Chat referansı alındı.")
 
     def _normalize(self, text: str) -> str:
-        """OCR hata duzeltme: rakam/sembol harf donusumu + kucuk harf."""
+        """OCR hata duzeltme: rakam/sembol harf donusumu + kucuk harf + çöp kelime temizliği."""
         t = text.lower()
         for k, v in [("1","l"),("0","o"),("5","s"),("$","s"),("4","a"),("@","a"),
-                     ("3","e"),("!","i"),("I","i"),("s","s"),("g","g"),("u","u"),("o","o"),("c","c")]:
+                     ("3","e"),("!","i"),("I","i"),("ş","s"),("ğ","g"),("ü","u"),("ö","o"),("ç","c"),("ı","i"),("İ","i")]:
             t = t.replace(k, v)
-        return t
+            
+        import re
+        t = re.sub(r'[^a-z0-9\s]', '', t)
+        
+        # Metin2 balıkçılık yazılarını temizle ki gereksiz kelimeler puanı bozmasın
+        # "taktin" kelimesi "altin" ile 0.73 oranında eşleşiyordu!
+        garbage_words = [
+            "cengele", "cengek", "engele", "yem", "olarak", "solucan", "sokucan", "hamur", "taktin", "taklin", "taktn",
+            "baligi", "bal", "olaya", "oltaya", "oltaniza", "takildi", "takild", "takdm", "yakaladin", "yakalandi", 
+            "geldi", "bir", "sey", "oltanin", "ucuna", "takilmis", "taklmis", "takilmi", "taklmi", "takilmiy", "takikmiy", "gibi", 
+            "gorunuyor", "gurunuyor", "gorunuyo", "gurunuyo", "grnyo", "grnyor"
+        ]
+        words = t.split()
+        cleaned_words = [w for w in words if w not in garbage_words]
+        
+        return " ".join(cleaned_words).strip()
 
     def _best_score(self, keyword: str, text: str) -> float:
-        """Normalize edilmis keyword ile text arasindaki en iyi benzerlik skorunu dondurur."""
+        """Kelime bazlı fuzzy matching: Keyword'deki HER kelime text içinde ayrı ayrı aranır."""
         norm_text = self._normalize(text)
         norm_kw   = self._normalize(keyword)
 
@@ -185,62 +250,81 @@ class ChatReader:
 
         words    = norm_text.split()
         kw_words = norm_kw.split()
-        best     = 0.0
+        
+        if not words or not kw_words:
+            return 0.0
 
-        if len(kw_words) == 1:
-            for w in words:
-                s = difflib.SequenceMatcher(None, norm_kw, w).ratio()
-                if s > best:
-                    best = s
-        else:
-            for i in range(max(1, len(words) - len(kw_words) + 1)):
-                window = " ".join(words[i:i+len(kw_words)])
-                s = difflib.SequenceMatcher(None, norm_kw, window).ratio()
-                if s > best:
-                    best = s
-        return best
+        total_score = 0.0
+        # Her chat kelimesi keyword içinde SADECE BİR KEZ kullanılabilir.
+        # (Aksi halde "altın yüzük" yazısındaki 'altın' kelimesi, "altın ton" keyword'ündeki
+        #  'ton' ile de 0.50 eşleşip yanlışlıkla "altın ton balığı" sanılıyordu.)
+        used_idx = set()
+        # Uzun (ayırt edici) kelimeler önce eşleşsin
+        for kw_w in sorted(kw_words, key=len, reverse=True):
+            best_match_for_word = 0.0
+            best_idx = -1
+            # Okunan yazıdaki henüz kullanılmamış kelimelerle tek tek kıyasla
+            for i, w in enumerate(words):
+                if i in used_idx:
+                    continue
+                s = difflib.SequenceMatcher(None, kw_w, w).ratio()
+                if s > best_match_for_word:
+                    best_match_for_word = s
+                    best_idx = i
+            # Kısa kelimelerde (ton, kral vb.) tesadüfi benzerlik kolay olduğundan eşik daha yüksek.
+            min_word_score = 0.66 if len(kw_w) <= 3 else 0.50
+            # Eğer bu kelime için bulunan en iyi eşleşme eşiğin altındaysa,
+            # demek ki bu kelime chatte HİÇ YOK. O zaman direkt elenmesi için 0 döndür.
+            if best_match_for_word < min_word_score:
+                return 0.0
+            used_idx.add(best_idx)
+            total_score += best_match_for_word
 
-    def check_fish_bite(self, text: str) -> str:
+        # Tüm kelimelerin eşleşme oranlarının ortalamasını döndür
+        return total_score / len(kw_words)
+
+    def identify_fish_bite(self, text: str) -> Tuple[str, Optional[str]]:
         if not text:
             log.warning("[WHITELIST UNKNOWN] Chat bos okundu! Garantiyeye alip OYNUYORUZ!")
-            return "play"
+            return ("play", None)
 
         MIN_THRESHOLD = 0.72
 
         best_keyword      = None
         best_should_catch = False
-        best_score        = 0.0
+        best_ratio        = 0.0
+        best_weight       = 0.0
 
         for keyword, should_catch in self.config.whitelist.items():
-            score = self._best_score(keyword, text)
-            log.debug(f"[SCORE] '{keyword}' -> {score:.3f}")
-            # Tie-break: skorlar çok yakınsa (≤0.01 fark) daha uzun (spesifik) keyword kazansın.
-            # Bu sayede "altın sudak" ile "sudak" yarışırken spesifik olan öne geçer.
-            is_better = score > best_score + 0.01
-            is_equally_good = abs(score - best_score) <= 0.01
-            is_more_specific = len(keyword) > len(best_keyword or "")
-            if is_better or (is_equally_good and is_more_specific):
-                best_score        = score
-                best_keyword      = keyword
-                best_should_catch = should_catch
+            ratio = self._best_score(keyword, text)
+            log.debug(f"[SCORE] '{keyword}' -> {ratio:.3f}")
+            
+            if ratio >= MIN_THRESHOLD:
+                weight = ratio * len(keyword)
+                if weight > best_weight:
+                    best_weight       = weight
+                    best_ratio        = ratio
+                    best_keyword      = keyword
+                    best_should_catch = should_catch
 
-        if best_keyword and best_score >= MIN_THRESHOLD:
+        if best_keyword:
             if best_should_catch:
-                log.info(f"[WHITELIST MATCH] '{best_keyword}' (skor: {best_score:.2f}) yakalanacak!")
-                return "play"
+                log.info(f"[WHITELIST MATCH] '{best_keyword}' (oran: {best_ratio:.2f}) yakalanacak!")
+                return ("play", best_keyword)
             else:
-                log.info(f"[WHITELIST SKIP] '{best_keyword}' (skor: {best_score:.2f}) istenmiyor. Iptal.")
-                return "skip"
+                log.info(f"[WHITELIST SKIP] '{best_keyword}' (oran: {best_ratio:.2f}) istenmiyor. Iptal.")
+                return ("skip", best_keyword)
 
-        # Whitelist tanımlıysa bilinmeyen balık = istemiyoruz demektir → skip.
-        # (Lüfer, tekir vb. whitelist'te yoksa yanlışlıkla yakalanmasın.)
-        # Whitelist tamamen boşsa kullanıcı filtreleme yapmıyor olabilir → play.
         if self.config.whitelist:
-            log.warning(f"[WHITELIST UNKNOWN] Tanimlanamayan metin, whitelist aktif → atlanıyor. (en iyi: '{best_keyword}' @ {best_score:.2f}) ({text[:50]})")
-            return "skip"
+            log.warning(f"[WHITELIST UNKNOWN] Tanimlanamayan metin, whitelist aktif → atlanıyor. (en iyi: '{best_keyword}' @ {best_ratio:.2f}) ({text[:50]})")
+            return ("skip", best_keyword)
         else:
             log.warning(f"[WHITELIST UNKNOWN] Whitelist bos, tanimlanamayan metin → OYNUYORUZ! ({text[:50]})")
-            return "play"
+            return ("play", best_keyword)
+
+    def check_fish_bite(self, text: str) -> str:
+        decision, _ = self.identify_fish_bite(text)
+        return decision
 
 # ===========================================================================
 # MULTI-THREAD MINIGAME CORE (Producer-Consumer)
@@ -259,10 +343,10 @@ class MinigameController:
         self.last_fish_time = 0.0
         self.fish_pos_lock = threading.Lock()
         self.stop_event = threading.Event()
-        self.hits = 0
         self.hits_lock = threading.Lock()
         self.latest_hsv = None
-        
+        self.detected_fish: Optional[str] = None
+
     def _is_minigame_closed(self, hsv: np.ndarray) -> bool:
         """Checks if the window is closed based on golden UI icons (Clock & Fish)."""
         fh, fw = hsv.shape[:2]
@@ -328,14 +412,21 @@ class MinigameController:
             
             # Sadece suyun olduğu GÜVENLİ BÖLGEYİ belirle (Kenarlıklar ve arayüz kesinlikle hariç)
             valid_area = np.zeros_like(v_channel)
-            valid_area[35:int(fh * 0.80), 30:fw-30] = 255  # Sol üst/sağ üst köşelerdeki gölgeler girmesin diye iyice daralttık
-            valid_area[:int(fh * 0.32), int(fw * 0.60):] = 0 # Sağ üstteki 0/3 skor tablosunu tamamen sil
+            # Sol/Sağ kenarlardan 35 piksel, üstten 40, alttan 45 piksel kırpıyoruz (Balığı kesmemek için esnetildi)
+            safe_top = 40
+            safe_bottom = fh - 45
+            safe_left = 35
+            safe_right = fw - 35
+            valid_area[safe_top:safe_bottom, safe_left:safe_right] = 255
+            # Sağ üstteki 0/3 skor tablosunu tamamen sil
+            valid_area[:int(fh * 0.32), int(fw * 0.60):] = 0
             
             # Güvenli bölge içindeki EN KARANLIK pikselin Value değerini bul (Kesinlikle balıktır)
             min_val, _, _, _ = cv2.minMaxLoc(v_channel, mask=valid_area)
             
-            # Balık gerçekten simsiyah olduğu için toleransı 35'ten 20'ye düşürdük (Sadece tam siyahları alacak)
-            _, fish_mask = cv2.threshold(v_channel, min_val + 20, 255, cv2.THRESH_BINARY_INV)
+            # Oyun içi gece döngüsünde sular karardığı için +20 tolerans suyu da balık sanıyordu.
+            # Bunu +10'a düşürerek sadece ve sadece simsiyah balık gövdesini almasını garantiledik.
+            _, fish_mask = cv2.threshold(v_channel, min_val + 10, 255, cv2.THRESH_BINARY_INV)
             fish_mask = cv2.bitwise_and(fish_mask, valid_area)
             
             # Ufak gürültüleri temizle
@@ -346,8 +437,8 @@ class MinigameController:
             contours, _ = cv2.findContours(fish_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             
             if contours:
-                # Sadece makul boyutlardaki gölgeleri (balığı) dikkate al. (Çok küçük gürültüleri veya çok büyük dalgaları yoksay)
-                valid_contours = [c for c in contours if 30 < cv2.contourArea(c) < 1200]
+                # Toleransı çok düşürdüğümüz için balık bazen küçük görünebilir, alt limiti 10'a çektik.
+                valid_contours = [c for c in contours if 10 < cv2.contourArea(c) < 3000]
                 if valid_contours:
                     c = max(valid_contours, key=cv2.contourArea)
                     
@@ -382,10 +473,11 @@ class MinigameController:
     def thread3_consumer2(self):
         """Thread 3 (Consumer 2): Watches for red circle and clicks the fish."""
         log.info("[THREAD 3] Tetikleyici & Tıklayıcı (Consumer 2) başlatıldı.")
-        # Red/Orange ranges - 2. fotoğraftaki çok açık pembe/kırmızı renk için iyice esnetildi
-        red_lower1 = np.array([0, 50, 120])
-        red_upper1 = np.array([20, 255, 255])
-        red_lower2 = np.array([160, 50, 120])
+        # Kırmızı çemberi daha iyi algılaması için aralığı biraz esnetiyoruz (Önceki 0-5 çok dar kalmış, 0-10 yapıyoruz)
+        # Kahverengilere tıklamasın diye eski 20 yerine 10'da bırakıyoruz.
+        red_lower1 = np.array([0, 70, 120])
+        red_upper1 = np.array([10, 255, 255])
+        red_lower2 = np.array([170, 70, 120])
         red_upper2 = np.array([180, 255, 255])
         
         last_click = 0.0
@@ -459,14 +551,16 @@ class MinigameController:
         """Thread 4: Reads chat in parallel to avoid delaying minigame start."""
         if not self.chat_reader: return
         log.info("[THREAD 4] Minigame oynanırken arka planda Chat okunuyor...")
-        time.sleep(0.5) # Yazının netleşmesi için ufak bekleme
+        # Yazının netleşmesi için eskiden 0.5sn bekleniyordu, GPU sayesinde 0.1sn yeterli.
+        time.sleep(0.1) 
         current_text = self.chat_reader.read_chat()
         if not current_text.strip(): return
         
         log.info(f"[OCR] Okunan Chat: '{current_text.replace(chr(10), ' ')}'")
-        decision = self.chat_reader.check_fish_bite(current_text)
+        decision, fish_name = self.chat_reader.identify_fish_bite(current_text)
+        self.detected_fish = fish_name
         if decision == "skip":
-            log.info("[THREAD 4] DİKKAT: İstenmeyen balık! Minigame anında iptal ediliyor.")
+            log.info(f"[THREAD 4] DİKKAT: İstenmeyen balık ({fish_name})! Minigame anında iptal ediliyor.")
             self.skip_fish = True
             self.stop_event.set()
 
@@ -500,6 +594,27 @@ class MinigameController:
 # ===========================================================================
 # BÖLÜM 6: DURUM MAKİNESİ (STATE MACHINE)
 # ===========================================================================
+SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "oturum.json")
+_SESSION_KEYS = ("total_casts", "hits", "misses", "valuable_fish", "worthless_fish",
+                 "caught_count", "escaped_count", "caught_fish")
+
+
+def load_session() -> dict:
+    """Önceki oturumdan kalan sayaçları (süre dahil) döndürür. Dosya yoksa boş sözlük."""
+    try:
+        with open(SESSION_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def reset_session() -> None:
+    try:
+        os.remove(SESSION_FILE)
+    except OSError:
+        pass
+
+
 class FishingHelper:
     def __init__(self, config: Optional[FisherConfig] = None):
         self.config = config or FisherConfig()
@@ -507,8 +622,117 @@ class FishingHelper:
         self.running = False
         self.chat_reader = ChatReader(self.config)
         self.keyboard = HumanKeyboard()
-        self.stats = {"total_casts": 0, "hits": 0, "misses": 0, "valuable_fish": 0, "worthless_fish": 0, "session_start": time.time()}
+        saved = load_session()
+        self.stats = {
+            "total_casts": 0,
+            "hits": 0,
+            "misses": 0,
+            "valuable_fish": 0,
+            "worthless_fish": 0,
+            "caught_count": 0,
+            "escaped_count": 0,
+            "caught_fish": {},
+            "total_won": 0.0,
+            "total_yang": 0,
+            # Önceki oturumların toplam çalışma süresi kadar geriden başlat -> sayaç kaldığı yerden devam eder
+            "session_start": time.time() - float(saved.get("active_seconds", 0)),
+        }
+        for k in _SESSION_KEYS:
+            if k in saved:
+                self.stats[k] = saved[k]
         self._farm_start_time = time.time()
+        self.current_bait_index = 0
+        self.last_controller: Optional[MinigameController] = None
+        # Slot değişiminden sonraki ilk cast'te eski 'yem bitti' yazısı chatte kalıcı durabilir.
+        self._just_switched_bait = False
+        self._last_save = 0.0
+        self._update_earnings()
+
+    def save_session(self) -> None:
+        """Sayaçları ve toplam aktif çalışma süresini oturum.json'a yazar."""
+        try:
+            data = {k: self.stats[k] for k in _SESSION_KEYS}
+            data["active_seconds"] = int(time.time() - self.stats["session_start"])
+            tmp = SESSION_FILE + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            os.replace(tmp, SESSION_FILE)
+            self._last_save = time.time()
+        except Exception as e:
+            log.warning(f"[OTURUM] Kaydedilemedi: {e}")
+
+    def _update_earnings(self) -> None:
+        """fiyatlar.json üzerinden tutulan balıkların toplam Yang ve Won değerini hesaplar."""
+        fiyatlar = {}
+        if os.path.exists("fiyatlar.json"):
+            try:
+                with open("fiyatlar.json", "r", encoding="utf-8") as f:
+                    fiyatlar = json.load(f)
+            except Exception:
+                pass
+
+        total_yang = 0
+        for fish_name, count in self.stats["caught_fish"].items():
+            fn = fish_name.lower().strip()
+            item_info = fiyatlar.get(fn, {})
+            if not item_info:
+                for k, v in fiyatlar.items():
+                    if k in fn or fn in k:
+                        item_info = v
+                        break
+            birim_yang = item_info.get("birim_yang", 0) if isinstance(item_info, dict) else int(item_info or 0)
+            total_yang += count * birim_yang
+
+        self.stats["total_yang"] = total_yang
+        self.stats["total_won"] = round(total_yang / 100_000_000, 3)
+
+    def _check_catch_outcome(self, chat_text: str) -> None:
+        """Minigame sonrası chatte 'uzunluğu xx cm' veya 'yemi kaybettin' yazısını denetler."""
+        if not chat_text:
+            return
+        t = self._fold_tr(chat_text.lower())
+        fish_name = (self.last_controller.detected_fish if self.last_controller else None) or "Bilinmeyen Balık"
+
+        # Yakalanma belirtileri: 'yakalanan', 'uzunlu', 'cm', 'boyu'
+        if any(w in t for w in ("yakalanan", "uzunlu", "cm.", "cm,", "cm ")):
+            self.stats["caught_count"] += 1
+            cf = self.stats["caught_fish"]
+            cf[fish_name] = cf.get(fish_name, 0) + 1
+            self._update_earnings()
+            self.save_session()
+            log.info(f"🎣 [TUTULDU] {fish_name.title()} yakalandı! (Adet: {cf[fish_name]}, Toplam Tutulan: {self.stats['caught_count']}) | Tahmini Kazanç: {self.stats['total_won']:.2f} Won ({self.stats['total_yang']:,} Yang)")
+        elif any(w in t for w in ("kaybettin", "kayboldu", "kacti", "kact")):
+            self.stats["escaped_count"] += 1
+            log.warning(f"💨 [KAÇTI] Balık kaçtı (Yemi kaybettin)! (Toplam kaçan: {self.stats['escaped_count']})")
+            self.save_session()
+
+    @staticmethod
+    def _fold_tr(text: str) -> str:
+        for k, v in (("ö","o"),("ç","c"),("ş","s"),("ı","i"),("ü","u"),("ğ","g"),("İ","i")):
+            text = text.replace(k, v)
+        return text
+
+    def _chat_last_event(self, chat_text: str) -> str:
+        """Sohbet kalıcı olduğundan eski mesajlar silinmez. Bu yüzden metindeki EN SON olaya bakılır
+        (OCR çıktısı yukarıdan aşağıya sıralı, yani sondaki = en yeni).
+        Dönüş: 'bait_empty' | 'mount' | 'ok' (yem takıldı mesajı en son) | 'none'"""
+        t = re.sub(r"\s+", " ", self._fold_tr(chat_text.lower()))
+        events = {}
+        for name, pats in (
+            ("bait_empty", (r"once yemi", r"yemi cengel")),
+            ("mount", (r"binek", r"uzerindeyken", r"tutamazs")),
+            # 'Çengele yem olarak Solucan taktın' (OCR bozuk halleri: olbrak, solusc, takbn ...)
+            ("ok", (r"ol\w{0,2}rak", r"yem ol", r"solu", r"hamur", r"taktin", r"takt")),
+        ):
+            pos = -1
+            for p in pats:
+                for m in re.finditer(p, t):
+                    pos = max(pos, m.start())
+            if pos >= 0:
+                events[name] = pos
+        if not events:
+            return "none"
+        return max(events, key=events.get)
 
     def _is_farm_time_up(self) -> bool:
         elapsed_min = (time.time() - self._farm_start_time) / 60.0
@@ -516,6 +740,11 @@ class FishingHelper:
 
     def run(self):
         self.running = True
+        log.info("Oyun penceresine geçmek için 5 saniyeniz var...")
+        for i in range(5, 0, -1):
+            if not self.running: return
+            log.info(f"{i} saniye...")
+            time.sleep(1)
         log.info("Metin2 Fishing Bot (Gelişmiş Multi-Thread Mimari) başlatıldı.")
         while self.running:
             try:
@@ -526,6 +755,7 @@ class FishingHelper:
                 elif self.state == AppState.MINIGAME:
                     controller = MinigameController(self.config, self.chat_reader)
                     controller.play()
+                    self.last_controller = controller
                     if controller.skip_fish:
                         self.stats["worthless_fish"] += 1
                         self.keyboard.press(self.config.fishing_close_key)
@@ -543,31 +773,71 @@ class FishingHelper:
                 elif self.state == AppState.STOPPED:
                     break
                 time.sleep(0.1)
+                if time.time() - self._last_save > 15:
+                    self.save_session()
             except KeyboardInterrupt:
                 break
             except Exception as e:
                 log.error(f"[HATA] Beklenmeyen hata: {e}", exc_info=True)
                 break
         self.running = False
+        self.save_session()
         log.info(f"Bot kapatıldı. Stats: {self.stats}")
 
     def state_cast(self) -> AppState:
-        log.info("[STATE 1] Olta atılıyor... (Mod: Whitelist)")
+        current_bait = self.config.bait_keys[self.current_bait_index]
+        log.info(f"[STATE 1] Olta atılıyor... (Yem Slotu: {current_bait})")
         self.stats["total_casts"] += 1
-        self.keyboard.press(self.config.bait_key)
-        time.sleep(random.uniform(0.3, 0.6))
+        self.keyboard.press(current_bait)
+        time.sleep(random.uniform(0.1, 0.2))  # Yem ikonunun işlenmesi için kısa bekleme
         
         self.keyboard.press(self.config.cast_key)
         
-        time.sleep(2.0 + random.uniform(0.2, 0.6))
+        # Oltayı attıktan sonra "Yem yok" uyarısı için chat'i kontrol et
+        time.sleep(0.3) # Yazının belirmesi için çok kısa bekle
+        chat_text = self.chat_reader.read_chat().lower()
+        last_event = self._chat_last_event(chat_text)
+        
+        # "Önce yemi çengele geçir" mesajı sohbette KALICI olduğu için, mesaj varsa bile
+        # ondan sonra 'çengele yem taktın' satırı geldiyse eski mesajdır (last_event == 'ok').
+        if last_event == "bait_empty":
+            if self._just_switched_bait:
+                # Yeni slotun ilk denemesi: eski mesaj OCR'da kalmış olabilir. Atlamadan önce 1 kez daha dene.
+                log.warning(f"[YEM DOĞRULAMA] '{current_bait}' slotunda 'yem yok' görüldü ama yeni geçildi, tekrar deneniyor...")
+                self._just_switched_bait = False
+                time.sleep(0.8)
+                return AppState.CAST
+            log.warning(f"[YEM BİTTİ] '{current_bait}' slotundaki yem tükendi!")
+            self.current_bait_index += 1
+            if self.current_bait_index >= len(self.config.bait_keys):
+                log.error("[YEM BİTTİ] Tüm yem slotları tükendi! Bot durduruluyor.")
+                return AppState.STOPPED
+            
+            next_bait = self.config.bait_keys[self.current_bait_index]
+            log.info(f"[YEM DEĞİŞİMİ] Yeni yem slotuna geçiliyor: {next_bait}")
+            self._just_switched_bait = True
+            return AppState.CAST
+        
+        # Bu cast'te hata yok (ya da yem takıldı) -> doğrulama bayrağını kapat
+        self._just_switched_bait = False
+            
+        if last_event == "mount":
+            log.warning("[BİNEK HATASI] Binek üzerindeyken balık tutulamaz! Binekten iniliyor...")
+            self.keyboard.hotkey('ctrl', 'g')
+            time.sleep(0.6)
+            return AppState.CAST
+            
+        time.sleep(random.uniform(0.3, 0.6))
         return AppState.DECISION
 
     def state_decision(self) -> AppState:
         log.info("[STATE 2] Balık bekleniyor (Minigame penceresi aranıyor)...")
         wait_start = time.time()
+        # Loglara göre ısırma süresi: medyan ~0sn, p99 ~3sn. 60sn beklemek takılma gibi görünüyordu.
+        bite_timeout = 15.0
         
         with mss.mss() as sct:
-            while time.time() - wait_start < 60.0:
+            while time.time() - wait_start < bite_timeout:
                 if not self.running: return AppState.STOPPED
                 if self._is_farm_time_up(): return AppState.REST
                 
@@ -590,28 +860,33 @@ class FishingHelper:
                     # Chat okuma işi oyun oynanırken arka planda (Thread 4) yapılacak!
                     return AppState.MINIGAME
                         
-                time.sleep(0.5)
+                time.sleep(0.05)
                 
-        log.warning("[STATE 2] 60sn geçti, balık vurmadı. İptal.")
+        log.warning(f"[STATE 2] {bite_timeout:.0f}sn geçti, balık vurmadı (olta atılmamış olabilir). İptal, yeniden denenecek.")
         self.keyboard.press(self.config.fishing_close_key)
         return AppState.ANIM_CANCEL
 
     def state_anim_cancel(self) -> AppState:
         log.info("[STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...")
         # Minigame biter bitmez oltayı çekme animasyonunu İPTAL ETMEK için hiç beklemeden bineğe biniyoruz
-        time.sleep(random.uniform(0.15, 0.3))
+        time.sleep(random.uniform(0.05, 0.12))
         
         # Hızlıca bineğe bin
         self.keyboard.hotkey("ctrl", self.config.mount_key)
         
-        # Animasyonun iptal olması için ufak bir bekleme
-        time.sleep(random.uniform(0.15, 0.25))
+        # Sunucu gecikmesi için kısa bekleme (eskiden 0.4-0.6 sn)
+        time.sleep(random.uniform(0.22, 0.32))
         
         # Tekrar binekden in
         self.keyboard.hotkey("ctrl", self.config.mount_key)
         
-        # Karakterin yere basıp oltayı tekrar atabilmesi için kısa bekleme
-        time.sleep(random.uniform(0.4, 0.6))
+        # Karakterin yere basıp oltayı tekrar atabilmesi için kısa bekleme (eskiden 0.4-0.6 sn)
+        time.sleep(random.uniform(0.2, 0.3))
+
+        # Sonuç kontrolü (Balık tutuldu mu / kaçtı mı)
+        chat_text = self.chat_reader.read_chat()
+        self._check_catch_outcome(chat_text)
+
         return AppState.CAST
 
 if __name__ == "__main__":

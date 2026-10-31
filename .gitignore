@@ -1,2 +1,13 @@
 *.log
 __pycache__/
+venv_gpu/
+venv/
+venv_vm/
+dostgame_profile/
+oturum.json
+oturum.json.tmp
+scratch/
+.vscode/
+python-*.exe
+fisherman_backup.py
+fisherman_yedek.py
