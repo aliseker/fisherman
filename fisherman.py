@@ -41,6 +41,12 @@ except ImportError:
 # Uzak OCR servisi (ocr_server.py). Sanal makinelerde ekran kartı olmadığı için
 # sohbet resmi ana bilgisayardaki GPU'ya gönderilir. Örn: FISHER_OCR_URL=http://192.168.50.1:8765
 _REMOTE_OCR_URL = os.environ.get("FISHER_OCR_URL", "").strip().rstrip("/")
+if not _REMOTE_OCR_URL:
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ocr_url.txt"), "r", encoding="utf-8") as _f:
+            _REMOTE_OCR_URL = _f.read().strip().rstrip("/")
+    except OSError:
+        pass
 if _REMOTE_OCR_URL:
     _OCR_BACKEND = "remote"
 
