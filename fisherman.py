@@ -533,13 +533,7 @@ class MinigameController:
         return gold_pixels < 30
 
     def _close_minigame_window(self):
-        """Minigame penceresini kapatır (X butonuna tıklar ve ESC tuşunu basılı tutarak yollar)."""
-        try:
-            close_x = self.config.minigame_roi["left"] + self.config.minigame_roi["width"] - 14
-            close_y = self.config.minigame_roi["top"] + 14
-            HumanMouse.click(close_x, close_y, fast=True)
-        except Exception:
-            pass
+        """Minigame penceresini sadece ESC tuşuna basarak kapatır."""
         HumanKeyboard.press(self.config.fishing_close_key)
         
     def thread1_producer(self):
@@ -1120,13 +1114,7 @@ class FishingHelper:
         return AppState.ANIM_CANCEL
 
     def state_anim_cancel(self) -> AppState:
-        # EĞER BALIK SKİP EDİLDİYSE: Karakter olta çekme animasyonuna girmez!
-        # Kesinlikle bineğe binmeye (Ctrl+G) çalışmayıp anında sonraki oltayı atıyoruz.
-        if self.last_controller and self.last_controller.skip_fish:
-            log.info("[STATE 4] İstenmeyen balık atlandı. Bineğe binmeden anında yeni olta atılıyor!")
-            return AppState.CAST
-
-        log.info("[STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...")
+        log.info("[STATE 4] Animasyon/Gecikme iptali yapılıyor (Ctrl+G)...")
         time.sleep(0.04)
         
         # Hızlıca bineğe bin
