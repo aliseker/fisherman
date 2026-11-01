@@ -6,6 +6,26 @@ Tamamen Asenkron Producer-Consumer (Çoklu İşlemci) Mimarisi.
 =============================================================================
 """
 
+import sys
+import os
+
+# venv_gpu otomatik köprü: Sistem python ile çalıştırılsa bile venv_gpu paketlerini kullan
+_base_dir = os.path.dirname(os.path.abspath(__file__))
+_venv_site = os.path.join(_base_dir, "venv_gpu", "Lib", "site-packages")
+if os.path.isdir(_venv_site) and _venv_site not in sys.path:
+    sys.path.insert(0, _venv_site)
+    for _sub in ("win32", "win32/lib", "Pythonwin"):
+        _sp = os.path.join(_venv_site, _sub)
+        if os.path.isdir(_sp) and _sp not in sys.path:
+            sys.path.insert(0, _sp)
+    if hasattr(os, "add_dll_directory"):
+        for _dll in (os.path.join(_venv_site, "pywin32_system32"), os.path.join(_venv_site, "torch", "lib")):
+            if os.path.isdir(_dll):
+                try:
+                    os.add_dll_directory(_dll)
+                except Exception:
+                    pass
+
 import time
 import random
 import math
@@ -14,8 +34,6 @@ import threading
 import queue
 import re
 import logging
-import sys
-import os
 import json
 import urllib.request
 from dataclasses import dataclass, field
@@ -31,6 +49,7 @@ import win32gui
 import win32con
 
 # OCR
+
 try:
     import easyocr
     _OCR_BACKEND = "easyocr"
@@ -41,12 +60,14 @@ except ImportError:
 # Uzak OCR servisi (ocr_server.py). Sanal makinelerde ekran kartı olmadığı için
 # sohbet resmi ana bilgisayardaki GPU'ya gönderilir. Örn: FISHER_OCR_URL=http://192.168.50.1:8765
 _REMOTE_OCR_URL = os.environ.get("FISHER_OCR_URL", "").strip().rstrip("/")
-if not _REMOTE_OCR_URL:
+if not _REMOTE_OCR_URL and os.path.exists("settings.json"):
     try:
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ocr_url.txt"), "r", encoding="utf-8") as _f:
-            _REMOTE_OCR_URL = _f.read().strip().rstrip("/")
-    except OSError:
+        with open("settings.json", "r", encoding="utf-8") as _sf:
+            _sdata = json.load(_sf)
+            _REMOTE_OCR_URL = _sdata.get("ocr_url", "").strip().rstrip("/")
+    except Exception:
         pass
+
 if _REMOTE_OCR_URL:
     _OCR_BACKEND = "remote"
 
@@ -290,9 +311,14 @@ class ChatReader:
         return total_score / len(kw_words)
 
     def identify_fish_bite(self, text: str) -> Tuple[str, Optional[str]]:
-        if not text:
-            log.warning("[WHITELIST UNKNOWN] Chat bos okundu! Garantiyeye alip OYNUYORUZ!")
-            return ("play", None)
+        catch_unknown = self.config.whitelist.get("belli değil", False)
+        if not text or not text.strip():
+            if catch_unknown:
+                log.info("[WHITELIST] Chat metni boş/okunamadı, 'belli değil' AÇIK -> Yakalanıyor.")
+                return ("play", "belli değil")
+            else:
+                log.warning("[WHITELIST] Chat metni boş/okunamadı, 'belli değil' KAPALI -> İptal ediliyor (Skip).")
+                return ("skip", "belli değil")
 
         MIN_THRESHOLD = 0.72
 
@@ -302,6 +328,8 @@ class ChatReader:
         best_weight       = 0.0
 
         for keyword, should_catch in self.config.whitelist.items():
+            if keyword == "belli değil":
+                continue
             ratio = self._best_score(keyword, text)
             log.debug(f"[SCORE] '{keyword}' -> {ratio:.3f}")
             
@@ -321,12 +349,13 @@ class ChatReader:
                 log.info(f"[WHITELIST SKIP] '{best_keyword}' (oran: {best_ratio:.2f}) istenmiyor. Iptal.")
                 return ("skip", best_keyword)
 
-        if self.config.whitelist:
-            log.warning(f"[WHITELIST UNKNOWN] Tanimlanamayan metin, whitelist aktif → atlanıyor. (en iyi: '{best_keyword}' @ {best_ratio:.2f}) ({text[:50]})")
-            return ("skip", best_keyword)
+        # Tanımlanamayan metin geldiğinde kullanıcının 'belli değil' ayarını uygula
+        if catch_unknown:
+            log.info(f"[WHITELIST UNKNOWN] Tanımlanamayan metin, 'belli değil' AÇIK -> Yakalanıyor. ({text[:50]})")
+            return ("play", "belli değil")
         else:
-            log.warning(f"[WHITELIST UNKNOWN] Whitelist bos, tanimlanamayan metin → OYNUYORUZ! ({text[:50]})")
-            return ("play", best_keyword)
+            log.warning(f"[WHITELIST UNKNOWN] Tanımlanamayan metin, 'belli değil' KAPALI -> İptal ediliyor (Skip). ({text[:50]})")
+            return ("skip", "belli değil")
 
     def check_fish_bite(self, text: str) -> str:
         decision, _ = self.identify_fish_bite(text)
@@ -557,16 +586,22 @@ class MinigameController:
         """Thread 4: Reads chat in parallel to avoid delaying minigame start."""
         if not self.chat_reader: return
         log.info("[THREAD 4] Minigame oynanırken arka planda Chat okunuyor...")
-        # Yazının netleşmesi için eskiden 0.5sn bekleniyordu, GPU sayesinde 0.1sn yeterli.
-        time.sleep(0.1) 
-        current_text = self.chat_reader.read_chat()
-        if not current_text.strip(): return
         
+        current_text = ""
+        # Chat yazısının ekranda belirmesi için 0.1s - 0.2s arayla deneme yap
+        for _ in range(3):
+            time.sleep(0.12)
+            if self.stop_event.is_set():
+                return
+            current_text = self.chat_reader.read_chat()
+            if current_text.strip():
+                break
+
         log.info(f"[OCR] Okunan Chat: '{current_text.replace(chr(10), ' ')}'")
         decision, fish_name = self.chat_reader.identify_fish_bite(current_text)
         self.detected_fish = fish_name
         if decision == "skip":
-            log.info(f"[THREAD 4] DİKKAT: İstenmeyen balık ({fish_name})! Minigame anında iptal ediliyor.")
+            log.info(f"[THREAD 4] DİKKAT: İstenmeyen balık/eşya ({fish_name})! Minigame anında iptal ediliyor.")
             self.skip_fish = True
             self.stop_event.set()
 

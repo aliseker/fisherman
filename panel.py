@@ -28,7 +28,23 @@ import subprocess
 import urllib.request
 import webbrowser
 
-sys.path.insert(0, os.path.dirname(__file__))
+_base_dir = os.path.dirname(os.path.abspath(__file__))
+_venv_site = os.path.join(_base_dir, "venv_gpu", "Lib", "site-packages")
+if os.path.isdir(_venv_site) and _venv_site not in sys.path:
+    sys.path.insert(0, _venv_site)
+    for _sub in ("win32", "win32/lib", "Pythonwin"):
+        _sp = os.path.join(_venv_site, _sub)
+        if os.path.isdir(_sp) and _sp not in sys.path:
+            sys.path.insert(0, _sp)
+    if hasattr(os, "add_dll_directory"):
+        for _dll in (os.path.join(_venv_site, "pywin32_system32"), os.path.join(_venv_site, "torch", "lib")):
+            if os.path.isdir(_dll):
+                try:
+                    os.add_dll_directory(_dll)
+                except Exception:
+                    pass
+sys.path.insert(0, _base_dir)
+
 from fisherman import (FisherConfig, AppState, FishingHelper, _OCR_BACKEND, _REMOTE_OCR_URL,
                        load_session, reset_session)
 
@@ -241,14 +257,18 @@ class FisherPanel(tk.Tk):
                  ).pack(side="left", padx=14, pady=10)
         
         ocr_text = f"OCR: {_OCR_BACKEND.upper()}"
+        ocr_color = self.GREEN
         if _REMOTE_OCR_URL:
-            ocr_text = "OCR: Uzak Servis"
+            ocr_text = f"OCR: Uzak Servis"
         elif _OCR_BACKEND == "easyocr":
-            ocr_text = "OCR: GPU (yerel)"
+            ocr_text = "OCR: GPU (Yerel)"
+        else:
+            ocr_text = "OCR: YOK (Metin Okunamaz!)"
+            ocr_color = self.RED
             
         self._ocr_label = tk.Label(
             header, text=ocr_text,
-            font=self.FONT_UI, fg=self.GREEN, bg=self.ACCENT,
+            font=self.FONT_UI, fg=ocr_color, bg=self.ACCENT,
         )
         self._ocr_label.pack(side="right", padx=14)
 
