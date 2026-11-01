@@ -179,38 +179,45 @@ def fetch_live_prices(progress_callback=None) -> Dict[str, Any]:
     say("[FIYAT] DostGame Ruby Lucifer pazarina baglaniliyor...")
     updated = dict(current)
     ok_count = 0
-    os.makedirs(PROFILE_DIR, exist_ok=True)
-    with sync_playwright() as p:
-        ctx = p.chromium.launch_persistent_context(
-            PROFILE_DIR, channel="chrome", headless=False, no_viewport=True,
-            args=["--window-position=-32000,-32000", "--window-size=1280,900",
-                  "--disable-blink-features=AutomationControlled"],
-        )
-        try:
-            page = ctx.pages[0] if ctx.pages else ctx.new_page()
-            page.goto(URL, wait_until="domcontentloaded", timeout=45000)
-            for item in TARGET_ITEMS:
-                key = item["key"]
-                say(f"[FIYAT] {key.title()} araniyor...")
-                try:
-                    prices = _search_item(page, item)
-                except Exception as e:
-                    say(f"[HATA] {key}: {e}")
-                    prices = []
-                if prices:
-                    avg = int(sum(prices) / len(prices))
-                    updated[key] = {
-                        "birim_yang": avg,
-                        "not": f"DostGame Lucifer - en ucuz {len(prices)} ilan ortalamasi "
-                               f"({', '.join(f'{x/1e6:.2f}m' for x in prices)})",
-                        "guncelleme": time.strftime("%Y-%m-%d %H:%M"),
-                    }
-                    ok_count += 1
-                    say(f"[OK] {key.title()}: {avg/1e6:.2f}M Yang")
-                else:
-                    say(f"[UYARI] {key.title()} sitede bulunamadi/okunamadi, eski fiyat korundu.")
-        finally:
-            ctx.close()
+    try:
+        with sync_playwright() as p:
+            try:
+                ctx = p.chromium.launch_persistent_context(
+                    PROFILE_DIR, channel="chrome", headless=False, no_viewport=True,
+                    args=["--window-position=-32000,-32000", "--window-size=1280,900",
+                          "--disable-blink-features=AutomationControlled"],
+                )
+            except Exception as e:
+                say(f"[UYARI] Google Chrome bulunamadı ({e}). Fiyatlar fiyatlar.json'dan okunacak.")
+                return updated
+
+            try:
+                page = ctx.pages[0] if ctx.pages else ctx.new_page()
+                page.goto(URL, wait_until="domcontentloaded", timeout=45000)
+                for item in TARGET_ITEMS:
+                    key = item["key"]
+                    say(f"[FIYAT] {key.title()} araniyor...")
+                    try:
+                        prices = _search_item(page, item)
+                    except Exception as e:
+                        say(f"[HATA] {key}: {e}")
+                        prices = []
+                    if prices:
+                        avg = int(sum(prices) / len(prices))
+                        updated[key] = {
+                            "birim_yang": avg,
+                            "not": f"DostGame Lucifer - en ucuz {len(prices)} ilan ortalamasi "
+                                   f"({', '.join(f'{x/1e6:.2f}m' for x in prices)})",
+                            "guncelleme": time.strftime("%Y-%m-%d %H:%M"),
+                        }
+                        ok_count += 1
+                        say(f"[OK] {key.title()}: {avg/1e6:.2f}M Yang")
+                    else:
+                        say(f"[UYARI] {key.title()} sitede bulunamadi/okunamadi, eski fiyat korundu.")
+            finally:
+                ctx.close()
+    except Exception as e:
+        say(f"[HATA] Playwright genel hata: {e}")
 
     with open(PRICE_FILE, "w", encoding="utf-8") as f:
         json.dump(updated, f, ensure_ascii=False, indent=4)

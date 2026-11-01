@@ -779,8 +779,30 @@ class FishingHelper:
         elapsed_min = (time.time() - self._farm_start_time) / 60.0
         return elapsed_min >= self.config.farm_duration_minutes
 
+    def _focus_game_window(self) -> None:
+        """Metin2 oyun penceresini bulup otomatik öne getirir (tuş vuruşları oyuna gitsin)."""
+        try:
+            import win32gui, win32con, win32api
+            target_title = self.config.game_window_title.lower()
+            found = []
+            def _enum(hwnd, _):
+                if win32gui.IsWindowVisible(hwnd):
+                    t = win32gui.GetWindowText(hwnd).lower()
+                    if target_title in t and "visual studio" not in t and "helper" not in t and "chrome" not in t and "code" not in t:
+                        found.append(hwnd)
+            win32gui.EnumWindows(_enum, None)
+            if found:
+                h = found[0]
+                win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
+                win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
+                win32gui.SetForegroundWindow(h)
+                log.info(f"[ODAK] Metin2 oyun penceresi öne getirildi (hwnd: {h})")
+        except Exception:
+            pass
+
     def run(self):
         self.running = True
+        self._focus_game_window()
         log.info("Oyun penceresine geçmek için 5 saniyeniz var...")
         for i in range(5, 0, -1):
             if not self.running: return

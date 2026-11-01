@@ -642,15 +642,15 @@ class FisherPanel(tk.Tk):
             # FishingHelper.__init__ içinde ChatReader çağrılır →
             # EasyOCR modeli burada (arka planda) yüklenir
             self._helper = FishingHelper(config=config)
-            # Oyuna geçiş geri sayımından ÖNCE güncel fiyatlar siteden çekilir (buton bu sürede kilitli)
-            self.after(0, lambda: self._status_label.config(text="DostGame fiyatları çekiliyor...", fg="#ffd700"))
-            self._fetch_prices_blocking(restore_focus=False)
-            # Yüklenme bitti, UI'ye sinyal gönder
+            
+            # Yüklenme bitti, hemen ÇALIŞIYOR durumuna al
             self.after(0, self._set_status_running)
-            # Fiyat çekme süresi çalışma süresine sayılmasın
-            self._helper.stats["session_start"] = time.time() - float(load_session().get("active_seconds", 0))
+            
+            # Fiyat yenileme botun olta atmasını ASLA engellemesin (tamamen arka planda)
             self._price_stop.clear()
             threading.Thread(target=self._price_refresh_loop, daemon=True, name="PriceLoop").start()
+            
+            # Botu hemen başlat (5 saniyelik geri sayım ve olta atma)
             self._helper.run()
         except Exception as e:
             logging.getLogger("Fisher").exception(f"Hata: {e}")
