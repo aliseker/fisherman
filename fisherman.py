@@ -49,16 +49,19 @@ import win32gui
 import win32con
 
 # OCR
-
 try:
     import easyocr
-    _OCR_BACKEND = "easyocr"
 except ImportError:
     easyocr = None
-    _OCR_BACKEND = "none"
 
-# Uzak OCR servisi (ocr_server.py). Sanal makinelerde ekran kartı olmadığı için
-# sohbet resmi ana bilgisayardaki GPU'ya gönderilir. Örn: FISHER_OCR_URL=http://192.168.50.1:8765
+_HAS_CUDA = False
+if easyocr is not None:
+    try:
+        import torch
+        _HAS_CUDA = torch.cuda.is_available()
+    except Exception:
+        _HAS_CUDA = False
+
 _REMOTE_OCR_URL = os.environ.get("FISHER_OCR_URL", "").strip().rstrip("/")
 if not _REMOTE_OCR_URL and os.path.exists("settings.json"):
     try:
@@ -68,8 +71,18 @@ if not _REMOTE_OCR_URL and os.path.exists("settings.json"):
     except Exception:
         pass
 
-if _REMOTE_OCR_URL:
+# Öncelik Sıralaması:
+# 1. Eğer yerel bilgisayarda GPU (CUDA) varsa doğrudan yerel EasyOCR kullan (En hızlı)
+# 2. Eğer CUDA yoksa (örn. Sanal Makine) ama _REMOTE_OCR_URL varsa ana bilgisayardaki GPU servisine gönder
+# 3. İkisi de yoksa yerel CPU EasyOCR
+if _HAS_CUDA and easyocr is not None:
+    _OCR_BACKEND = "easyocr"
+elif _REMOTE_OCR_URL:
     _OCR_BACKEND = "remote"
+elif easyocr is not None:
+    _OCR_BACKEND = "easyocr"
+else:
+    _OCR_BACKEND = "none"
 
 # EasyOCR modeli modül genelinde tek sefer yüklenir (Singleton).
 # Bot kaç kez durdurulup başlatılırsa başlatılsın model yeniden yüklenmez.
@@ -256,9 +269,10 @@ class ChatReader:
         t = re.sub(r'[^a-z0-9\s]', '', t)
         
         # Metin2 balıkçılık yazılarını temizle ki gereksiz kelimeler puanı bozmasın
-        # "taktin" kelimesi "altin" ile 0.73 oranında eşleşiyordu!
+        # "taktin" / "takhin" kelimesi "altin" ile eşleşip Altın Sudak zannedilmesini önle
         garbage_words = [
-            "cengele", "cengek", "engele", "yem", "olarak", "solucan", "sokucan", "hamur", "taktin", "taklin", "taktn",
+            "cengele", "cengek", "engele", "yem", "olarak", "solucan", "sokucan", "hamur",
+            "taktin", "taklin", "taktn", "takhin", "takhm", "takhn", "takim",
             "baligi", "bal", "olaya", "oltaya", "oltaniza", "takildi", "takild", "takdm", "yakaladin", "yakalandi", 
             "geldi", "bir", "sey", "oltanin", "ucuna", "takilmis", "taklmis", "takilmi", "taklmi", "takilmiy", "takikmiy", "gibi", 
             "gorunuyor", "gurunuyor", "gorunuyo", "gurunuyo", "grnyo", "grnyor"
@@ -283,15 +297,10 @@ class ChatReader:
             return 0.0
 
         total_score = 0.0
-        # Her chat kelimesi keyword içinde SADECE BİR KEZ kullanılabilir.
-        # (Aksi halde "altın yüzük" yazısındaki 'altın' kelimesi, "altın ton" keyword'ündeki
-        #  'ton' ile de 0.50 eşleşip yanlışlıkla "altın ton balığı" sanılıyordu.)
         used_idx = set()
-        # Uzun (ayırt edici) kelimeler önce eşleşsin
         for kw_w in sorted(kw_words, key=len, reverse=True):
             best_match_for_word = 0.0
             best_idx = -1
-            # Okunan yazıdaki henüz kullanılmamış kelimelerle tek tek kıyasla
             for i, w in enumerate(words):
                 if i in used_idx:
                     continue
@@ -299,16 +308,12 @@ class ChatReader:
                 if s > best_match_for_word:
                     best_match_for_word = s
                     best_idx = i
-            # Kısa kelimelerde (ton, kral vb.) tesadüfi benzerlik kolay olduğundan eşik daha yüksek.
             min_word_score = 0.66 if len(kw_w) <= 3 else 0.50
-            # Eğer bu kelime için bulunan en iyi eşleşme eşiğin altındaysa,
-            # demek ki bu kelime chatte HİÇ YOK. O zaman direkt elenmesi için 0 döndür.
             if best_match_for_word < min_word_score:
                 return 0.0
             used_idx.add(best_idx)
             total_score += best_match_for_word
 
-        # Tüm kelimelerin eşleşme oranlarının ortalamasını döndür
         return total_score / len(kw_words)
 
     def identify_fish_bite(self, text: str) -> Tuple[str, Optional[str]]:
@@ -323,29 +328,133 @@ class ChatReader:
 
         norm_text = self._normalize(text)
 
-        # 1. Doğrudan ve Hızlı Eşleşmeler (Kelimeler benzersizdir, fuzzy aramadan önce anında çözer)
-        direct_matches = [
-            ("minik", "minik balık"),
-            ("yabbie", "yabbie yengeci"),
-            ("hamsi", "hamsi"),
-            ("hemsi", "hamsi"),
-            ("zargana", "zargana"),
-            ("palamut", "palamut"),
-            ("kral yengec", "kral yengeç"),
-            ("deniz kizi", "deniz kızı anahtarı"),
-        ]
-        for trigger, fish_name in direct_matches:
-            if trigger in norm_text:
-                should_catch = self.config.whitelist.get(fish_name, False)
-                if should_catch:
-                    log.info(f"[WHITELIST MATCH] '{fish_name}' (doğrudan eşleşme: '{trigger}') yakalanacak!")
-                    return ("play", fish_name)
-                else:
-                    log.info(f"[WHITELIST SKIP] '{fish_name}' (doğrudan eşleşme: '{trigger}') istenmiyor. İptal.")
-                    return ("skip", fish_name)
+        # 1. Kesin ve Doğrudan Semantik Çözümleyici (Fuzzy karmaşasını önler, anında eşleştirir)
+        # MINIK BALIK
+        if "minik" in norm_text or "mink" in norm_text:
+            f = "minik balık"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
 
+        # DENIZ KIZI ANAHTARI (denizkızı, deniz kızı, deniz anahtar vb.)
+        if "deniz" in norm_text:
+            f = "deniz kızı anahtarı"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # PALAMUT
+        if "palamut" in norm_text:
+            f = "palamut"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # HAMSI
+        if "hamsi" in norm_text or "hemsi" in norm_text:
+            f = "hamsi"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # ZARGANA
+        if "zargana" in norm_text or "zargan" in norm_text:
+            f = "zargana"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # YABBIE
+        if "yabbie" in norm_text or "yabi" in norm_text:
+            f = "yabbie yengeci"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # KRAL YENGEÇ vs BİLGE KRAL EŞYALARI
+        if "kral" in norm_text:
+            if "yengec" in norm_text:
+                f = "kral yengeç"
+            elif "eldiven" in norm_text:
+                f = "bilge kralın eldiveni"
+            elif "sembol" in norm_text:
+                f = "bilge kralın sembolü"
+            else:
+                f = "kral yengeç"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # SUDAK BALIKLARI (Altın Sudak vs Büyük Sudak vs Normal Sudak)
+        if "sudak" in norm_text:
+            if "altin" in norm_text:
+                f = "altın sudak"
+            elif "buyuk" in norm_text:
+                f = "büyük sudak"
+            else:
+                f = "sudak"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # SAZAN BALIKLARI (Aynalı Sazan vs Ot Sazanı vs Normal Sazan)
+        if "sazan" in norm_text:
+            if "aynali" in norm_text:
+                f = "aynalı sazan"
+            elif "ot" in norm_text:
+                f = "ot sazanı"
+            else:
+                f = "sazan"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # ALABALIKLAR (Gökkuşağı vs Nehir vs Dere)
+        if "alabal" in norm_text:
+            if "gokkusagi" in norm_text:
+                f = "gökkuşağı alabalığı"
+            elif "nehir" in norm_text:
+                f = "nehir alabalığı"
+            else:
+                f = "dere alabalığı"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # DİĞER BALIKLAR
+        if "som" in norm_text or "somon" in norm_text:
+            f = "som balığı"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "yayin" in norm_text:
+            f = "yayın balığı"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "yilan" in norm_text:
+            f = "yılan başı balığı"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "levrek" in norm_text:
+            f = "levrek"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "lufer" in norm_text:
+            f = "lüfer"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "tekir" in norm_text:
+            f = "tekir"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "ringa" in norm_text:
+            f = "ringa"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "kadife" in norm_text:
+            f = "kadife"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "karides" in norm_text:
+            f = "tatlı su karidesi"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "kurbaga" in norm_text:
+            f = "kurbağa balığı"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "sevimli" in norm_text:
+            f = "sevimli balık"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # DİĞER EŞYALAR
+        if "lucy" in norm_text:
+            f = "lucy'nin yüzüğü"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "yuzuk" in norm_text:
+            f = "altın yüzük"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "gumus" in norm_text and "anahtar" in norm_text:
+            f = "gümüş anahtar"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "anahtar" in norm_text:
+            f = "altın anahtar"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+        if "boya" in norm_text:
+            f = "saç boyası"
+            return ("play" if self.config.whitelist.get(f, False) else "skip", f)
+
+        # 2. Fuzzy Eşleştirme (Bilinmeyen yazılışlar için)
         MIN_THRESHOLD = 0.72
-
         best_keyword      = None
         best_should_catch = False
         best_ratio        = 0.0
@@ -355,8 +464,6 @@ class ChatReader:
             if keyword == "belli değil":
                 continue
             ratio = self._best_score(keyword, text)
-            log.debug(f"[SCORE] '{keyword}' -> {ratio:.3f}")
-            
             if ratio >= MIN_THRESHOLD:
                 weight = ratio * len(keyword)
                 if weight > best_weight:
@@ -370,7 +477,7 @@ class ChatReader:
                 log.info(f"[WHITELIST MATCH] '{best_keyword}' (oran: {best_ratio:.2f}) yakalanacak!")
                 return ("play", best_keyword)
             else:
-                log.info(f"[WHITELIST SKIP] '{best_keyword}' (oran: {best_ratio:.2f}) istenmiyor. Iptal.")
+                log.info(f"[WHITELIST SKIP] '{best_keyword}' (oran: {best_ratio:.2f}) istenmiyor. İptal.")
                 return ("skip", best_keyword)
 
         # Tanımlanamayan metin geldiğinde kullanıcının 'belli değil' ayarını uygula
@@ -424,6 +531,16 @@ class MinigameController:
         
         # Altın sarısı ikon pikselleri kaybolduysa oyun bitmiştir
         return gold_pixels < 30
+
+    def _close_minigame_window(self):
+        """Minigame penceresini kapatır (X butonuna tıklar ve ESC tuşunu basılı tutarak yollar)."""
+        try:
+            close_x = self.config.minigame_roi["left"] + self.config.minigame_roi["width"] - 14
+            close_y = self.config.minigame_roi["top"] + 14
+            HumanMouse.click(close_x, close_y, fast=True)
+        except Exception:
+            pass
+        HumanKeyboard.press(self.config.fishing_close_key)
         
     def thread1_producer(self):
         """Thread 1 (Producer): Captures minigame ROI with mss continually."""
@@ -660,10 +777,9 @@ class MinigameController:
         self.decision_ready.set()  # Thread 3'ün kilidini aç
 
         if decision == "skip":
-            log.info(f"[THREAD 4] 🛑 İSTENMEYEN BALIK/EŞYA ({fish_name})! Minigame ESC ile anında iptal ediliyor.")
+            log.info(f"[THREAD 4] 🛑 İSTENMEYEN BALIK/EŞYA ({fish_name})! Minigame kapatılıyor.")
             self.skip_fish = True
-            self.stop_event.set()
-            pydirectinput.press(self.config.fishing_close_key)
+            self.stop_event.set()  # play()'i anında uyandır, 16 saniye beklemesin!
 
     def play(self):
         """Starts all 4 threads and orchestrates the Minigame."""
@@ -691,6 +807,20 @@ class MinigameController:
             log.warning("[MINIGAME] Zaman aşımı (16sn)! Thread'ler zorla durduruluyor.")
             self.stop_event.set()
             
+        # Eğer skip edildiyse pencere ekrandan tamamen kaybolana kadar kapatmayı dene ve bekle
+        if self.skip_fish:
+            close_start = time.time()
+            with mss.mss() as sct:
+                while time.time() - close_start < 1.5:
+                    self._close_minigame_window()
+                    time.sleep(0.08)
+                    frame = np.array(sct.grab(self.config.minigame_roi))
+                    hsv = cv2.cvtColor(cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR), cv2.COLOR_BGR2HSV)
+                    if self._is_minigame_closed(hsv):
+                        log.info("[MINIGAME] İstenmeyen balık penceresi başarıyla kapatıldı.")
+                        break
+
+        self.stop_event.set()
         t1.join(timeout=0.2); t2.join(timeout=0.2); t3.join(timeout=0.2); t4.join(timeout=0.2)
         log.info(f"[MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: {self.hits}")
 
@@ -908,6 +1038,7 @@ class FishingHelper:
         log.info(f"Bot kapatıldı. Stats: {self.stats}")
 
     def state_cast(self) -> AppState:
+        self.last_controller = None
         current_bait = self.config.bait_keys[self.current_bait_index]
         log.info(f"[STATE 1] Olta atılıyor... (Yem Slotu: {current_bait})")
         self.stats["total_casts"] += 1
@@ -989,6 +1120,12 @@ class FishingHelper:
         return AppState.ANIM_CANCEL
 
     def state_anim_cancel(self) -> AppState:
+        # EĞER BALIK SKİP EDİLDİYSE: Karakter olta çekme animasyonuna girmez!
+        # Kesinlikle bineğe binmeye (Ctrl+G) çalışmayıp anında sonraki oltayı atıyoruz.
+        if self.last_controller and self.last_controller.skip_fish:
+            log.info("[STATE 4] İstenmeyen balık atlandı. Bineğe binmeden anında yeni olta atılıyor!")
+            return AppState.CAST
+
         log.info("[STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...")
         time.sleep(0.04)
         

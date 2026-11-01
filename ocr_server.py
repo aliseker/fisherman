@@ -83,9 +83,20 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+def run_server_background(host="0.0.0.0", port=8765):
+    """Arka plan thread'inde OCR sunucusunu başlatır."""
+    try:
+        get_reader()
+        srv = ThreadingHTTPServer((host, port), Handler)
+        print(f"[OCR] Arka plan servisi hazır: http://{host}:{port}")
+        srv.serve_forever()
+    except Exception as e:
+        print(f"[OCR] Arka plan servis hatası: {e}")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--host", default="127.0.0.1", help="Dinlenecek IP. Sanal makineler için VMware ağ kartının IP'sini ver (0.0.0.0 tüm ağa açar!)")
+    ap.add_argument("--host", default="0.0.0.0", help="Dinlenecek IP. Sanal makineler için 0.0.0.0 veya VMware IP'sini ver.")
     ap.add_argument("--port", type=int, default=8765)
     args = ap.parse_args()
 

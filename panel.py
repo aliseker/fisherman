@@ -213,9 +213,33 @@ class FisherPanel(tk.Tk):
         logging.getLogger().setLevel(logging.INFO)
 
         self._build_ui()
+        self._ensure_ocr_server()
         self._poll_logs()
         self._poll_stats()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _ensure_ocr_server(self) -> None:
+        """Eğer bu makinede GPU varsa ve 8765 portunda OCR servisi çalışmıyorsa arka planda başlatır."""
+        def _check_and_run():
+            try:
+                with urllib.request.urlopen("http://127.0.0.1:8765/health", timeout=0.8) as resp:
+                    if resp.status == 200:
+                        logging.info("[OCR Server] Host OCR servisi 8765 portunda aktif (VM istekleri hazır).")
+                        return
+            except Exception:
+                pass
+
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    from ocr_server import run_server_background
+                    logging.info("[OCR Server] Host GPU tespit edildi! Sanal makineler için OCR servisi (0.0.0.0:8765) başlatılıyor...")
+                    t = threading.Thread(target=run_server_background, kwargs={"host": "0.0.0.0", "port": 8765}, daemon=True)
+                    t.start()
+            except Exception as e:
+                logging.debug(f"[OCR Server] Otomatik başlatma atlandı: {e}")
+
+        threading.Thread(target=_check_and_run, daemon=True).start()
 
     # -----------------------------------------------------------------------
     # Ayarlar Kaydet / Yükle

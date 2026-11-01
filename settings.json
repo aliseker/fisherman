@@ -1,1 +1,15 @@
-{"chat_roi": {"top": 198, "left": 38, "width": 446, "height": 45}, "minigame_roi": {"top": 423, "left": 207, "width": 343, "height": 278}}
+{
+  "chat_roi": {
+    "top": 198,
+    "left": 38,
+    "width": 446,
+    "height": 45
+  },
+  "minigame_roi": {
+    "top": 423,
+    "left": 207,
+    "width": 343,
+    "height": 278
+  },
+  "ocr_url": "http://192.168.214.1:8765"
+}
