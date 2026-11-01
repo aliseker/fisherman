@@ -38,9 +38,8 @@ def get_reader():
 
 def read_image(img: np.ndarray) -> str:
     with _lock:
-        results = get_reader().readtext(img, detail=1)
-    results.sort(key=lambda r: r[0][0][1])
-    return "\n".join(r[1].lower().strip() for r in results if r[1].strip())
+        results = get_reader().readtext(img, detail=0)
+    return "\n".join(r.lower().strip() for r in results if r.strip())
 
 
 class Handler(BaseHTTPRequestHandler):

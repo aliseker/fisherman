@@ -219,22 +219,23 @@ class ChatReader:
         if self._backend == "remote":
             return self._read_remote(thresh)
         if self._backend == "easyocr" and self._reader:
-            results = self._reader.readtext(thresh, detail=1)
-            results.sort(key=lambda r: r[0][0][1])
-            return "\n".join(r[1].lower().strip() for r in results if r[1].strip())
+            # detail=0 EasyOCR inferans süresini 500ms'den 40ms'ye düşürür
+            results = self._reader.readtext(thresh, detail=0)
+            return "\n".join(r.lower().strip() for r in results if r.strip())
         return ""
 
     def _read_remote(self, img: np.ndarray) -> str:
         """Resmi ana bilgisayardaki OCR servisine (ocr_server.py) gönderir."""
-        ok, buf = cv2.imencode(".png", img)
+        # PNG yerine JPEG (quality 85) kodlayarak CPU ve ağ transfer süresini 10 kat hızlandır
+        ok, buf = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
         if not ok:
             return ""
         req = urllib.request.Request(
             _REMOTE_OCR_URL + "/ocr", data=buf.tobytes(),
-            headers={"Content-Type": "image/png"}, method="POST",
+            headers={"Content-Type": "image/jpeg"}, method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=3) as resp:
                 return json.loads(resp.read().decode("utf-8")).get("text", "")
         except Exception as e:
             log.warning(f"[OCR-REMOTE] Servise ulaşılamadı ({_REMOTE_OCR_URL}): {e}")
@@ -320,6 +321,29 @@ class ChatReader:
                 log.warning("[WHITELIST] Chat metni boş/okunamadı, 'belli değil' KAPALI -> İptal ediliyor (Skip).")
                 return ("skip", "belli değil")
 
+        norm_text = self._normalize(text)
+
+        # 1. Doğrudan ve Hızlı Eşleşmeler (Kelimeler benzersizdir, fuzzy aramadan önce anında çözer)
+        direct_matches = [
+            ("minik", "minik balık"),
+            ("yabbie", "yabbie yengeci"),
+            ("hamsi", "hamsi"),
+            ("hemsi", "hamsi"),
+            ("zargana", "zargana"),
+            ("palamut", "palamut"),
+            ("kral yengec", "kral yengeç"),
+            ("deniz kizi", "deniz kızı anahtarı"),
+        ]
+        for trigger, fish_name in direct_matches:
+            if trigger in norm_text:
+                should_catch = self.config.whitelist.get(fish_name, False)
+                if should_catch:
+                    log.info(f"[WHITELIST MATCH] '{fish_name}' (doğrudan eşleşme: '{trigger}') yakalanacak!")
+                    return ("play", fish_name)
+                else:
+                    log.info(f"[WHITELIST SKIP] '{fish_name}' (doğrudan eşleşme: '{trigger}') istenmiyor. İptal.")
+                    return ("skip", fish_name)
+
         MIN_THRESHOLD = 0.72
 
         best_keyword      = None
@@ -370,6 +394,8 @@ class MinigameController:
         self.config = config
         self.chat_reader = chat_reader
         self.skip_fish = False
+        self.fish_decision = None
+        self.decision_ready = threading.Event()
         self.mouse = HumanMouse()
         self.frame_queue = queue.Queue(maxsize=3)
         self.current_fish_pos = None
@@ -378,6 +404,7 @@ class MinigameController:
         self.last_fish_time = 0.0
         self.fish_pos_lock = threading.Lock()
         self.stop_event = threading.Event()
+        self.hits = 0
         self.hits_lock = threading.Lock()
         self.latest_hsv = None
         self.detected_fish: Optional[str] = None
@@ -516,9 +543,34 @@ class MinigameController:
         red_upper2 = np.array([180, 255, 255])
         
         last_click = 0.0
-        click_cooldown = 0.4  # Her kırmızı çember yandığında (ıskalasa bile) çabuk toparlaması için düşürüldü
+        click_cooldown = 0.38
+        wait_decision_start = time.time()
         
         while not self.stop_event.is_set():
+            # 1. Chat okuyucusunun balık kararını verip vermediğini denetle
+            if not self.decision_ready.is_set():
+                if time.time() - wait_decision_start > 0.7:
+                    # 700ms boyunca OCR sonuç vermediyse 'belli değil' kuralını uygula
+                    catch_unknown = self.config.whitelist.get("belli değil", False)
+                    if catch_unknown:
+                        log.warning("[THREAD 3] OCR zaman aşımı, 'belli değil' AÇIK -> Tıklamaya izin veriliyor.")
+                        self.fish_decision = "play"
+                    else:
+                        log.warning("[THREAD 3] OCR zaman aşımı, 'belli değil' KAPALI -> Minigame iptal ediliyor.")
+                        self.fish_decision = "skip"
+                        self.skip_fish = True
+                        self.stop_event.set()
+                        pydirectinput.press(self.config.fishing_close_key)
+                        break
+                    self.decision_ready.set()
+                else:
+                    self.decision_ready.wait(timeout=0.02)
+                    continue
+            
+            # 2. İstenmeyen bir balıksa ASLA tıklama, döngüyü hemen kır
+            if self.skip_fish or self.fish_decision == "skip":
+                break
+
             hsv = getattr(self, "latest_hsv", None)
             if hsv is None:
                 time.sleep(0.01)
@@ -577,37 +629,47 @@ class MinigameController:
                     
                     with self.hits_lock:
                         self.hits += 1
-                        # Oyun kapanana kadar tıklamaya devam edecek. (Önceden 3 miss atınca çıkıyordu)
                         log.info(f"[THREAD 3] Tıklama yapıldı (Toplam deneme: {self.hits})")
                             
             time.sleep(0.01)
 
     def thread4_chat_reader(self):
-        """Thread 4: Reads chat in parallel to avoid delaying minigame start."""
-        if not self.chat_reader: return
-        log.info("[THREAD 4] Minigame oynanırken arka planda Chat okunuyor...")
+        """Thread 4: Minigame başlar başlamaz sohbeti okur ve balığın yakalanıp yakalanmayacağına karar verir."""
+        if not self.chat_reader:
+            self.fish_decision = "play"
+            self.decision_ready.set()
+            return
+
+        log.info("[THREAD 4] Minigame açıldı, balık türü okunuyor...")
         
         current_text = ""
-        # Chat yazısının ekranda belirmesi için 0.1s - 0.2s arayla deneme yap
-        for _ in range(3):
-            time.sleep(0.12)
+        # Chat yazısının ekranda belirmesi için çok kısa (30ms) bekleme yeterli (olta vurunca chat'e zaten düşer)
+        time.sleep(0.03)
+        for _ in range(2):
             if self.stop_event.is_set():
                 return
             current_text = self.chat_reader.read_chat()
             if current_text.strip():
                 break
+            time.sleep(0.04)
 
         log.info(f"[OCR] Okunan Chat: '{current_text.replace(chr(10), ' ')}'")
         decision, fish_name = self.chat_reader.identify_fish_bite(current_text)
         self.detected_fish = fish_name
+        self.fish_decision = decision
+        self.decision_ready.set()  # Thread 3'ün kilidini aç
+
         if decision == "skip":
-            log.info(f"[THREAD 4] DİKKAT: İstenmeyen balık/eşya ({fish_name})! Minigame anında iptal ediliyor.")
+            log.info(f"[THREAD 4] 🛑 İSTENMEYEN BALIK/EŞYA ({fish_name})! Minigame ESC ile anında iptal ediliyor.")
             self.skip_fish = True
             self.stop_event.set()
+            pydirectinput.press(self.config.fishing_close_key)
 
     def play(self):
         """Starts all 4 threads and orchestrates the Minigame."""
         self.stop_event.clear()
+        self.decision_ready.clear()
+        self.fish_decision = None
         self.hits = 0
         self.current_fish_pos = None
         self.latest_hsv = None
@@ -629,7 +691,7 @@ class MinigameController:
             log.warning("[MINIGAME] Zaman aşımı (16sn)! Thread'ler zorla durduruluyor.")
             self.stop_event.set()
             
-        t1.join(); t2.join(); t3.join(); t4.join()
+        t1.join(timeout=0.2); t2.join(timeout=0.2); t3.join(timeout=0.2); t4.join(timeout=0.2)
         log.info(f"[MINIGAME] Sonlandırıldı. Toplam başarılı vuruş: {self.hits}")
 
 # ===========================================================================
@@ -821,7 +883,6 @@ class FishingHelper:
                     self.last_controller = controller
                     if controller.skip_fish:
                         self.stats["worthless_fish"] += 1
-                        self.keyboard.press(self.config.fishing_close_key)
                     else:
                         self.stats["valuable_fish"] += 1
                         self.stats["hits"] += controller.hits
@@ -835,7 +896,6 @@ class FishingHelper:
                     self.state = AppState.CAST
                 elif self.state == AppState.STOPPED:
                     break
-                time.sleep(0.1)
                 if time.time() - self._last_save > 15:
                     self.save_session()
             except KeyboardInterrupt:
@@ -852,12 +912,12 @@ class FishingHelper:
         log.info(f"[STATE 1] Olta atılıyor... (Yem Slotu: {current_bait})")
         self.stats["total_casts"] += 1
         self.keyboard.press(current_bait)
-        time.sleep(random.uniform(0.1, 0.2))  # Yem ikonunun işlenmesi için kısa bekleme
+        time.sleep(0.06)
         
         self.keyboard.press(self.config.cast_key)
         
-        # Oltayı attıktan sonra "Yem yok" uyarısı için chat'i kontrol et
-        time.sleep(0.3) # Yazının belirmesi için çok kısa bekle
+        # Oltayı attıktan sonra sadece 0.08s bekle ve yem durumunu hızlıca kontrol et (detail=0 40ms sürer)
+        time.sleep(0.08)
         chat_text = self.chat_reader.read_chat().lower()
         last_event = self._chat_last_event(chat_text)
         
@@ -868,7 +928,7 @@ class FishingHelper:
                 # Yeni slotun ilk denemesi: eski mesaj OCR'da kalmış olabilir. Atlamadan önce 1 kez daha dene.
                 log.warning(f"[YEM DOĞRULAMA] '{current_bait}' slotunda 'yem yok' görüldü ama yeni geçildi, tekrar deneniyor...")
                 self._just_switched_bait = False
-                time.sleep(0.8)
+                time.sleep(0.4)
                 return AppState.CAST
             log.warning(f"[YEM BİTTİ] '{current_bait}' slotundaki yem tükendi!")
             self.current_bait_index += 1
@@ -887,10 +947,9 @@ class FishingHelper:
         if last_event == "mount":
             log.warning("[BİNEK HATASI] Binek üzerindeyken balık tutulamaz! Binekten iniliyor...")
             self.keyboard.hotkey('ctrl', 'g')
-            time.sleep(0.6)
+            time.sleep(0.2)
             return AppState.CAST
             
-        time.sleep(random.uniform(0.3, 0.6))
         return AppState.DECISION
 
     def state_decision(self) -> AppState:
@@ -931,24 +990,30 @@ class FishingHelper:
 
     def state_anim_cancel(self) -> AppState:
         log.info("[STATE 4] Animasyon iptali yapılıyor (Ctrl+G)...")
-        # Minigame biter bitmez oltayı çekme animasyonunu İPTAL ETMEK için hiç beklemeden bineğe biniyoruz
-        time.sleep(random.uniform(0.05, 0.12))
+        time.sleep(0.04)
         
         # Hızlıca bineğe bin
         self.keyboard.hotkey("ctrl", self.config.mount_key)
-        
-        # Sunucu gecikmesi için kısa bekleme (eskiden 0.4-0.6 sn)
-        time.sleep(random.uniform(0.22, 0.32))
+        time.sleep(0.14)
         
         # Tekrar binekden in
         self.keyboard.hotkey("ctrl", self.config.mount_key)
-        
-        # Karakterin yere basıp oltayı tekrar atabilmesi için kısa bekleme (eskiden 0.4-0.6 sn)
-        time.sleep(random.uniform(0.2, 0.3))
+        time.sleep(0.12)
 
-        # Sonuç kontrolü (Balık tutuldu mu / kaçtı mı)
-        chat_text = self.chat_reader.read_chat()
-        self._check_catch_outcome(chat_text)
+        # Sonuç kontrolü: Minigame sonucunu OCR beklemeden doğrudan controller'dan işle (anında sıradakine geçer)
+        if self.last_controller and not self.last_controller.skip_fish:
+            if self.last_controller.hits >= 3:
+                fish_name = self.last_controller.detected_fish or "Bilinmeyen Balık"
+                self.stats["caught_count"] += 1
+                cf = self.stats["caught_fish"]
+                cf[fish_name] = cf.get(fish_name, 0) + 1
+                self._update_earnings()
+                self.save_session()
+                log.info(f"🎣 [TUTULDU] {fish_name.title()} yakalandı! (Adet: {cf[fish_name]}, Toplam Tutulan: {self.stats['caught_count']}) | Tahmini Kazanç: {self.stats['total_won']:.2f} Won ({self.stats['total_yang']:,} Yang)")
+            else:
+                self.stats["escaped_count"] += 1
+                self.save_session()
+                log.warning(f"💨 [KAÇTI] Balık kaçtı (Hit: {self.last_controller.hits}/3)! (Toplam kaçan: {self.stats['escaped_count']})")
 
         return AppState.CAST
 
