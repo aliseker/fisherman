@@ -190,10 +190,26 @@ class HumanMouse:
 class HumanKeyboard:
     @staticmethod
     def press(key: str) -> None:
-        pydirectinput.keyDown(key)
-        time.sleep(random.uniform(0.05, 0.15))
-        pydirectinput.keyUp(key)
-        time.sleep(random.uniform(0.02, 0.08))
+        k = key.lower()
+        if k == "escape":
+            try:
+                import win32api, win32con
+                win32api.keybd_event(win32con.VK_ESCAPE, 0x01, 0, 0)
+            except Exception:
+                pass
+            pydirectinput.keyDown("escape")
+            time.sleep(random.uniform(0.06, 0.10))
+            pydirectinput.keyUp("escape")
+            try:
+                import win32api, win32con
+                win32api.keybd_event(win32con.VK_ESCAPE, 0x01, win32con.KEYEVENTF_KEYUP, 0)
+            except Exception:
+                pass
+        else:
+            pydirectinput.keyDown(key)
+            time.sleep(random.uniform(0.05, 0.12))
+            pydirectinput.keyUp(key)
+        time.sleep(random.uniform(0.02, 0.05))
 
     @staticmethod
     def hotkey(modifier: str, key: str) -> None:
@@ -671,7 +687,6 @@ class MinigameController:
                         self.fish_decision = "skip"
                         self.skip_fish = True
                         self.stop_event.set()
-                        pydirectinput.press(self.config.fishing_close_key)
                         break
                     self.decision_ready.set()
                 else:
@@ -801,18 +816,24 @@ class MinigameController:
             log.warning("[MINIGAME] Zaman aşımı (16sn)! Thread'ler zorla durduruluyor.")
             self.stop_event.set()
             
-        # Eğer skip edildiyse pencere ekrandan tamamen kaybolana kadar kapatmayı dene ve bekle
+        # Eğer skip edildiyse pencereyi ESC ile temizce kapat ve doğrulamasını yap
         if self.skip_fish:
+            log.info("[MINIGAME] İstenmeyen balık: ESC tuşuyla kapatılıyor...")
+            self._close_minigame_window()
             close_start = time.time()
             with mss.mss() as sct:
-                while time.time() - close_start < 1.5:
-                    self._close_minigame_window()
-                    time.sleep(0.08)
+                while time.time() - close_start < 0.45:
+                    time.sleep(0.04)
                     frame = np.array(sct.grab(self.config.minigame_roi))
                     hsv = cv2.cvtColor(cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR), cv2.COLOR_BGR2HSV)
                     if self._is_minigame_closed(hsv):
-                        log.info("[MINIGAME] İstenmeyen balık penceresi başarıyla kapatıldı.")
+                        log.info("[MINIGAME] Minigame penceresi ESC ile başarıyla kapandı.")
                         break
+                else:
+                    log.warning("[MINIGAME] Pencere ilk ESC'de kapanmadı, tekrar ESC deneniyor...")
+                    self._close_minigame_window()
+                    time.sleep(0.06)
+            time.sleep(0.08)
 
         self.stop_event.set()
         t1.join(timeout=0.2); t2.join(timeout=0.2); t3.join(timeout=0.2); t4.join(timeout=0.2)
