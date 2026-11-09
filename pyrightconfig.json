@@ -1,0 +1,15 @@
+{
+  "venvPath": ".",
+  "venv": "venv_gpu",
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Windows",
+  "typeCheckingMode": "off",
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none",
+  "extraPaths": [
+    ".",
+    "./venv_gpu/Lib/site-packages",
+    "./venv_gpu/Lib/site-packages/win32",
+    "./venv_gpu/Lib/site-packages/win32/lib"
+  ]
+}

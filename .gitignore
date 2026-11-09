@@ -1,4 +1,6 @@
 *.log
+*.log.*
+*.bak*
 __pycache__/
 venv_gpu/
 venv/

@@ -1,15 +1,120 @@
 {
   "chat_roi": {
-    "top": 198,
-    "left": 38,
-    "width": 446,
-    "height": 45
+    "top": 206,
+    "left": 37,
+    "width": 602,
+    "height": 56
   },
   "minigame_roi": {
-    "top": 423,
-    "left": 207,
-    "width": 343,
-    "height": 278
+    "top": 417,
+    "left": 208,
+    "width": 416,
+    "height": 335
   },
-  "ocr_url": "http://192.168.214.1:8765"
+  "client_slots": {
+    "1": {
+      "chat_roi": {
+        "top": 206,
+        "left": 37,
+        "width": 602,
+        "height": 56
+      },
+      "rel_chat_roi": {
+        "rel_left": 25,
+        "rel_top": 159,
+        "width": 602,
+        "height": 56
+      },
+      "minigame_roi": {
+        "top": 417,
+        "left": 208,
+        "width": 416,
+        "height": 335
+      },
+      "rel_minigame_roi": {
+        "rel_left": 196,
+        "rel_top": 370,
+        "width": 416,
+        "height": 335
+      }
+    },
+    "4": {
+      "chat_roi": {
+        "top": 470,
+        "left": 835,
+        "width": 157,
+        "height": 53
+      },
+      "rel_chat_roi": {
+        "rel_left": 825,
+        "rel_top": 431,
+        "width": 157,
+        "height": 53
+      }
+    },
+    "2": {
+      "chat_roi": {
+        "top": 526,
+        "left": 1320,
+        "width": 643,
+        "height": 54
+      },
+      "rel_chat_roi": {
+        "rel_left": 31,
+        "rel_top": 127,
+        "width": 643,
+        "height": 54
+      },
+      "minigame_roi": {
+        "top": 791,
+        "left": 1363,
+        "width": 413,
+        "height": 333
+      },
+      "rel_minigame_roi": {
+        "rel_left": 74,
+        "rel_top": 392,
+        "width": 413,
+        "height": 333
+      }
+    },
+    "3": {
+      "chat_roi": {
+        "top": 220,
+        "left": 35,
+        "width": 503,
+        "height": 42
+      },
+      "rel_chat_roi": {
+        "rel_left": 25,
+        "rel_top": 181,
+        "width": 503,
+        "height": 42
+      },
+      "minigame_roi": {
+        "top": 437,
+        "left": 317,
+        "width": 338,
+        "height": 276
+      },
+      "rel_minigame_roi": {
+        "rel_left": 307,
+        "rel_top": 398,
+        "width": 338,
+        "height": 276
+      }
+    }
+  },
+  "rel_chat_roi": {
+    "rel_left": 25,
+    "rel_top": 159,
+    "width": 602,
+    "height": 56
+  },
+  "rel_minigame_roi": {
+    "rel_left": 196,
+    "rel_top": 370,
+    "width": 416,
+    "height": 335
+  }
 }
