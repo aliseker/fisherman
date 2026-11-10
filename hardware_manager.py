@@ -20,6 +20,7 @@ import os
 import random
 import threading
 import time
+import weakref
 from contextlib import contextmanager
 from enum import IntEnum
 from typing import Callable, Iterator, List, Optional, Set, Tuple
@@ -96,14 +97,57 @@ def _jitter(mean: float, std: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, random.gauss(mean, std)))
 
 
-def get_thread_sct() -> mss.mss:
-    """Her worker thread için tek bir kalıcı mss.mss() tutar (sıfır GDI handle sızıntısı)."""
-    sct = getattr(_MSS_TLS, "sct", None)
-    if sct is None:
-        ensure_dpi_awareness()
-        sct = mss.mss()
-        _MSS_TLS.sct = sct
+def _safe_close_sct(sct: object) -> None:
+    try:
+        close_fn = getattr(sct, "close", None)
+        if callable(close_fn):
+            close_fn()
+    except Exception:
+        pass
+
+
+class _ThreadSctHolder:
+    """Thread-local mss.MSS tutucusu; thread çıkışında GC / finalize ile GDI handle sızıntısını önler."""
+
+    def __init__(self, sct: object) -> None:
+        self.sct = sct
+        self._finalizer = weakref.finalize(self, _safe_close_sct, sct)
+        self._finalizer.atexit = False
+
+    def close(self) -> None:
+        fin = getattr(self, "_finalizer", None)
+        if fin is not None and fin.alive:
+            fin()
+        self.sct = None
+
+
+def get_thread_sct() -> mss.MSS:
+    """Her thread için kalıcı bir mss.MSS() tutar; thread çıkışında finalize/close ile GDI sızdırmaz."""
+    holder = getattr(_MSS_TLS, "holder", None)
+    if holder is not None and holder.sct is not None:
+        return holder.sct
+    ensure_dpi_awareness()
+    sct_cls = getattr(mss, "MSS", mss.mss)
+    sct = sct_cls()
+    _MSS_TLS.holder = _ThreadSctHolder(sct)
     return sct
+
+
+def close_thread_sct() -> None:
+    """Geçerli thread'e ait mss örneğini ve Windows GDI handle'larını (DC + DIB) anında serbest bırakır."""
+    holder = getattr(_MSS_TLS, "holder", None)
+    if holder is not None:
+        _MSS_TLS.holder = None
+        holder.close()
+
+
+@contextmanager
+def thread_sct_scope() -> Iterator[None]:
+    """Kısa ömürlü worker/OCR/sniper thread çıkışında GDI handle'larının kesinlikle kapatılmasını sağlar."""
+    try:
+        yield
+    finally:
+        close_thread_sct()
 
 
 def thread_grab_bgr(roi: dict) -> np.ndarray:
@@ -114,9 +158,15 @@ def thread_grab_bgr(roi: dict) -> np.ndarray:
         "width": max(10, int(roi["width"])),
         "height": max(10, int(roi["height"])),
     }
-    sct = get_thread_sct()
-    raw = np.asarray(sct.grab(safe_roi))
-    # mss BGRA döner; copy() bellek yaşam döngüsünü güvenli kılar
+    try:
+        sct = get_thread_sct()
+        raw = np.asarray(sct.grab(safe_roi))
+    except Exception:
+        # GDI/DC geçici olarak geçersizleştiyse eski örneği kapatıp taze bir örnek ile 1 kez yeniden dene
+        close_thread_sct()
+        sct = get_thread_sct()
+        raw = np.asarray(sct.grab(safe_roi))
+    # mss BGRA döner; cv2.cvtColor yeni bir BGR ndarray kopyası üretir
     return cv2.cvtColor(raw, cv2.COLOR_BGRA2BGR)
 
 
@@ -210,14 +260,22 @@ class PriorityHardwareMutex:
 
             ev.wait(timeout=min(0.025, rem))
 
+    def has_urgent_waiter(self) -> bool:
+        """Kuyrukta acil minigame vuruşu (URGENT_MINIGAME_HIT = 0) bekleyen olup olmadığını döndürür."""
+        with self._cond:
+            return any(w[0] == int(InputPriority.URGENT_MINIGAME_HIT) for w in self._waiters)
+
     def _promote_aged_locked(self) -> None:
         if not self._waiters:
             return
         cur_t = time.monotonic()
         aged = False
+        # Acil minigame vuruşlarını (0) korumak için yaşlanan CAST/LOW istekleri en fazla
+        # HIGH_ANIM_CANCEL (1) seviyesine yükseltilir; asla aktif vuruşların önüne geçemez!
+        promo_prio = int(InputPriority.HIGH_ANIM_CANCEL)
         for idx, (prio, ts, sq, cid, wev) in enumerate(self._waiters):
-            if prio > 0 and (cur_t - ts) >= self._aging_sec:
-                self._waiters[idx] = (0, ts, sq, cid, wev)
+            if prio > promo_prio and (cur_t - ts) >= self._aging_sec:
+                self._waiters[idx] = (promo_prio, ts, sq, cid, wev)
                 aged = True
         if aged:
             heapq.heapify(self._waiters)
@@ -493,15 +551,15 @@ class HumanKeyboard:
         pydirectinput.keyDown(k)
         try:
             if k == "escape":
-                hold = _jitter(0.088, 0.012, 0.068, 0.115)
+                hold = _jitter(0.075, 0.010, 0.058, 0.098)
             elif k == "space":
-                hold = _jitter(0.165, 0.020, 0.135, 0.200)
+                hold = _jitter(0.145, 0.014, 0.120, 0.175)
             else:
-                hold = _jitter(0.082, 0.014, 0.058, 0.118)
+                hold = _jitter(0.072, 0.011, 0.054, 0.098)
             time.sleep(hold)
         finally:
             pydirectinput.keyUp(k)
-        time.sleep(_jitter(0.040, 0.009, 0.024, 0.060))
+        time.sleep(_jitter(0.028, 0.006, 0.018, 0.042))
 
     @staticmethod
     def hotkey(modifier: str, key: str) -> None:
@@ -518,6 +576,31 @@ class HumanKeyboard:
             time.sleep(_jitter(0.045, 0.011, 0.025, 0.075))
         finally:
             pydirectinput.keyUp(mod)
+
+    @staticmethod
+    def mount_single_pulse(mount_key: str = "g", focus_check: Optional[Callable[[], bool]] = None) -> bool:
+        """
+        Bölünmüş binek animasyon iptali için tek CTRL+G darbesi (~0.13 sn kilit süresi).
+        try...finally bloğu CTRL ve G tuşlarının istisna halinde bile bırakılmasını garantiler.
+        """
+        mk = mount_key.lower()
+        if focus_check is not None and not focus_check():
+            return False
+
+        pydirectinput.keyDown("ctrl")
+        try:
+            time.sleep(_jitter(0.036, 0.006, 0.025, 0.050))
+            if focus_check is not None and not focus_check():
+                return False
+            pydirectinput.keyDown(mk)
+            try:
+                time.sleep(_jitter(0.065, 0.008, 0.050, 0.082))
+            finally:
+                pydirectinput.keyUp(mk)
+            time.sleep(_jitter(0.032, 0.006, 0.022, 0.045))
+        finally:
+            pydirectinput.keyUp("ctrl")
+        return True
 
     @staticmethod
     def safe_mount_cancel(mount_key: str = "g", focus_check: Optional[Callable[[], bool]] = None) -> float:

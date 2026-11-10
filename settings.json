@@ -1,120 +1,132 @@
 {
   "chat_roi": {
-    "top": 206,
-    "left": 37,
-    "width": 602,
-    "height": 56
+    "top": 135,
+    "left": 28,
+    "width": 429,
+    "height": 33
   },
   "minigame_roi": {
-    "top": 417,
-    "left": 208,
-    "width": 416,
-    "height": 335
+    "top": 259,
+    "left": 107,
+    "width": 272,
+    "height": 221
   },
   "client_slots": {
     "1": {
       "chat_roi": {
-        "top": 206,
-        "left": 37,
-        "width": 602,
-        "height": 56
+        "top": 135,
+        "left": 28,
+        "width": 429,
+        "height": 33
       },
       "rel_chat_roi": {
-        "rel_left": 25,
-        "rel_top": 159,
-        "width": 602,
-        "height": 56
+        "rel_left": 20,
+        "rel_top": 104,
+        "width": 429,
+        "height": 33
       },
       "minigame_roi": {
-        "top": 417,
-        "left": 208,
-        "width": 416,
-        "height": 335
+        "top": 259,
+        "left": 107,
+        "width": 272,
+        "height": 221
       },
       "rel_minigame_roi": {
-        "rel_left": 196,
-        "rel_top": 370,
-        "width": 416,
-        "height": 335
+        "rel_left": 99,
+        "rel_top": 228,
+        "width": 272,
+        "height": 221
       }
     },
     "4": {
       "chat_roi": {
-        "top": 470,
-        "left": 835,
-        "width": 157,
-        "height": 53
+        "top": 793,
+        "left": 22,
+        "width": 418,
+        "height": 33
       },
       "rel_chat_roi": {
-        "rel_left": 825,
-        "rel_top": 431,
-        "width": 157,
-        "height": 53
+        "rel_left": 21,
+        "rel_top": 103,
+        "width": 418,
+        "height": 33
+      },
+      "minigame_roi": {
+        "top": 906,
+        "left": 157,
+        "width": 273,
+        "height": 222
+      },
+      "rel_minigame_roi": {
+        "rel_left": 156,
+        "rel_top": 216,
+        "width": 273,
+        "height": 222
       }
     },
     "2": {
       "chat_roi": {
-        "top": 526,
-        "left": 1320,
-        "width": 643,
-        "height": 54
+        "top": 143,
+        "left": 858,
+        "width": 425,
+        "height": 34
       },
       "rel_chat_roi": {
-        "rel_left": 31,
-        "rel_top": 127,
-        "width": 643,
-        "height": 54
+        "rel_left": 22,
+        "rel_top": 105,
+        "width": 425,
+        "height": 34
       },
       "minigame_roi": {
-        "top": 791,
-        "left": 1363,
-        "width": 413,
-        "height": 333
+        "top": 279,
+        "left": 939,
+        "width": 272,
+        "height": 223
       },
       "rel_minigame_roi": {
-        "rel_left": 74,
-        "rel_top": 392,
-        "width": 413,
-        "height": 333
+        "rel_left": 103,
+        "rel_top": 241,
+        "width": 272,
+        "height": 223
       }
     },
     "3": {
       "chat_roi": {
-        "top": 220,
-        "left": 35,
-        "width": 503,
-        "height": 42
+        "top": 138,
+        "left": 1678,
+        "width": 437,
+        "height": 34
       },
       "rel_chat_roi": {
-        "rel_left": 25,
-        "rel_top": 181,
-        "width": 503,
-        "height": 42
+        "rel_left": 20,
+        "rel_top": 97,
+        "width": 437,
+        "height": 34
       },
       "minigame_roi": {
-        "top": 437,
-        "left": 317,
-        "width": 338,
-        "height": 276
+        "top": 298,
+        "left": 1759,
+        "width": 272,
+        "height": 218
       },
       "rel_minigame_roi": {
-        "rel_left": 307,
-        "rel_top": 398,
-        "width": 338,
-        "height": 276
+        "rel_left": 101,
+        "rel_top": 257,
+        "width": 272,
+        "height": 218
       }
     }
   },
   "rel_chat_roi": {
-    "rel_left": 25,
-    "rel_top": 159,
-    "width": 602,
-    "height": 56
+    "rel_left": 20,
+    "rel_top": 104,
+    "width": 429,
+    "height": 33
   },
   "rel_minigame_roi": {
-    "rel_left": 196,
-    "rel_top": 370,
-    "width": 416,
-    "height": 335
+    "rel_left": 99,
+    "rel_top": 228,
+    "width": 272,
+    "height": 221
   }
 }

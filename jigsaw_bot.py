@@ -27,6 +27,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import cv2
 import mss
+from mss.exception import ScreenShotError
 import numpy as np
 
 # Proje yolları
@@ -49,6 +50,7 @@ from jigsaw_solver import (
 from hardware_manager import (
     HumanMouse,
     WindowFocusGuard,
+    close_thread_sct,
     ensure_dpi_awareness,
     get_thread_sct,
     thread_grab_bgr,
@@ -504,132 +506,148 @@ class JigsawRunner:
         last_board_mask = -1
         draw_attempts = 0
         consecutive_full_checks = 0
+        last_grab_warn_t = 0.0
 
         self._log("🔍 'Balık yapboz oyunu' penceresi aranıyor...")
 
-        while self._running and not self._stop_event.is_set():
-            time.sleep(0.05)
+        try:
+            while self._running and not self._stop_event.is_set():
+                time.sleep(0.05)
 
-            # 1) Pencereyi bul
-            pos = self.vision.find_window(self.target_hwnd)
-            if not pos:
-                self._set_status("Pencere Bekleniyor...", "#ffd700")
-                time.sleep(0.4)
-                continue
+                try:
+                    # 1) Pencereyi bul
+                    pos = self.vision.find_window(self.target_hwnd)
+                    if not pos:
+                        self._set_status("Pencere Bekleniyor...", "#ffd700")
+                        time.sleep(0.4)
+                        continue
 
-            bx, by = pos
-            im = self.vision.grab_screen()
+                    bx, by = pos
+                    im = self.vision.grab_screen()
 
-            # 2) Discard onay diyaloğu açık mı? ("Evet" / "Hayır")
-            if self.vision.is_discard_dialog_open(im, bx, by):
-                self._log("⚠️ Atma onay kutusu açık -> 'Evet' butonuna tıklanıyor.")
-                evet_x = bx + 114
-                evet_y = by + 145
-                if self._focus_window():
-                    JigsawInput.click(evet_x, evet_y, button="left", fast=True)
-                time.sleep(random.uniform(0.12, 0.20))
-                continue
-
-            # 3) 6x4 Tahtayı oku
-            board, mask, filled_cnt = self.vision.read_board(im, bx, by)
-
-            # Tahta tamamen doldu mu? (24/24)
-            if mask == FULL_MASK:
-                consecutive_full_checks += 1
-                if consecutive_full_checks >= 2:
-                    chest_name = self.stats.record_game(moves_used)
-                    self._log(f"🎉 YAPBOZ BİTTİ! Toplam {moves_used} Adım -> Ödül: {chest_name}")
-                    self._log(
-                        f"📊 Genel Durum: {self.stats.total_games} Oyun | "
-                        f"Büyük: {self.stats.large_chests} | Orta: {self.stats.med_chests} | Küçük: {self.stats.small_chests} | "
-                        f"Kazanılan: {self.stats.total_won:.3f} Won"
-                    )
-                    self.policy.reset()
-                    moves_used = 0
-                    last_board_mask = -1
-                    consecutive_full_checks = 0
-                    # Metin2'nin ödülü vermesi ve tahtanın sıfırlanması için bekle
-                    time.sleep(0.70)
-                continue
-            else:
-                consecutive_full_checks = 0
-
-            # Yeni tahtaya geçilmişse (önceki tahta doluydu, şimdi boş)
-            if filled_cnt == 0 and last_board_mask > 0:
-                self._log("🆕 Yeni yapboz tahtası başladı (0/24 hücre).")
-                moves_used = 0
-                self.policy.reset()
-
-            last_board_mask = mask
-            self.stats.current_moves = moves_used
-
-            # 4) Aktif (tutulan / çekilen) parça var mı?
-            active = self.vision.detect_active_piece(im, bx, by)
-
-            if active is None:
-                # Elimizde parça yok -> Sandıktan yeni parça çek
-                # Sandık çekme butonu: (bx + 288, by + 161)
-                chest_btn_x = bx + 288
-                chest_btn_y = by + 161
-
-                draw_attempts += 1
-                if draw_attempts > 12:
-                    self._log("⚠️ Sandıktan parça çekilemedi. Sandık sayısı bitmiş olabilir mi?")
-                    time.sleep(0.8)
-                    draw_attempts = 0
-                    continue
-
-                if self._focus_window():
-                    JigsawInput.click(chest_btn_x, chest_btn_y, button="left", fast=True)
-                time.sleep(random.uniform(0.12, 0.20))
-                continue
-
-            # Parça başarıyla çekildi / görüldü!
-            draw_attempts = 0
-            p_name, p_sid, p_cells = active
-
-            # 5) Matematiksel En Optimal Kararı Sor (JigsawPolicy)
-            action: Action = self.policy.choose(mask, moves_used, p_cells)
-
-            if action.kind == "place":
-                r0, c0 = action.r0, action.c0
-                # Hücre (r0, c0) merkez koordinatları
-                cw = 39.6
-                ch = 39.5
-                cell_x = bx + 9 + int((c0 + 0.5) * cw)
-                cell_y = by + 41 + int((r0 + 0.5) * ch)
-
-                self._log(f"📥 [{moves_used + 1}. Adım] {p_name} -> Tahtaya Yerleştir: Satır {r0}, Sütun {c0} ({action.note})")
-                if self._focus_window():
-                    JigsawInput.click(cell_x, cell_y, button="left", fast=True)
-                    moves_used += 1
-                time.sleep(random.uniform(0.14, 0.22))
-
-            elif action.kind == "discard":
-                self._log(f"🗑️ [{moves_used + 1}. Adım] {p_name} -> ATILIYOR (Sağ Tık + Onay)! ({action.note})")
-                if not self._focus_window():
-                    time.sleep(0.2)
-                    continue
-                # Parçayı sağ tıklayarak yok etme diyaloğunu tetikle
-                discard_x, discard_y = self._safe_discard_point(bx, by)
-                JigsawInput.click(discard_x, discard_y, button="right", fast=True)
-                time.sleep(random.uniform(0.12, 0.18))
-
-                # Diyalog açılmasını bekle ve 'Evet' butonuna tıkla
-                im_diag = self.vision.grab_screen()
-                if self.vision.is_discard_dialog_open(im_diag, bx, by):
-                    evet_x = bx + 114
-                    evet_y = by + 145
-                    JigsawInput.click(evet_x, evet_y, button="left", fast=True)
-                    moves_used += 1
-                    time.sleep(random.uniform(0.12, 0.20))
-                else:
-                    time.sleep(0.10)
-                    im_diag2 = self.vision.grab_screen()
-                    if self.vision.is_discard_dialog_open(im_diag2, bx, by):
+                    # 2) Discard onay diyaloğu açık mı? ("Evet" / "Hayır")
+                    if self.vision.is_discard_dialog_open(im, bx, by):
+                        self._log("⚠️ Atma onay kutusu açık -> 'Evet' butonuna tıklanıyor.")
                         evet_x = bx + 114
                         evet_y = by + 145
-                        JigsawInput.click(evet_x, evet_y, button="left", fast=True)
-                        moves_used += 1
+                        if self._focus_window():
+                            JigsawInput.click(evet_x, evet_y, button="left", fast=True)
                         time.sleep(random.uniform(0.12, 0.20))
+                        continue
+
+                    # 3) 6x4 Tahtayı oku
+                    board, mask, filled_cnt = self.vision.read_board(im, bx, by)
+
+                    # Tahta tamamen doldu mu? (24/24)
+                    if mask == FULL_MASK:
+                        consecutive_full_checks += 1
+                        if consecutive_full_checks >= 2:
+                            chest_name = self.stats.record_game(moves_used)
+                            self._log(f"🎉 YAPBOZ BİTTİ! Toplam {moves_used} Adım -> Ödül: {chest_name}")
+                            self._log(
+                                f"📊 Genel Durum: {self.stats.total_games} Oyun | "
+                                f"Büyük: {self.stats.large_chests} | Orta: {self.stats.med_chests} | Küçük: {self.stats.small_chests} | "
+                                f"Kazanılan: {self.stats.total_won:.3f} Won"
+                            )
+                            self.policy.reset()
+                            moves_used = 0
+                            last_board_mask = -1
+                            consecutive_full_checks = 0
+                            # Metin2'nin ödülü vermesi ve tahtanın sıfırlanması için bekle
+                            time.sleep(0.70)
+                        continue
+                    else:
+                        consecutive_full_checks = 0
+
+                    # Yeni tahtaya geçilmişse (önceki tahta doluydu, şimdi boş)
+                    if filled_cnt == 0 and last_board_mask > 0:
+                        self._log("🆕 Yeni yapboz tahtası başladı (0/24 hücre).")
+                        moves_used = 0
+                        self.policy.reset()
+
+                    last_board_mask = mask
+                    self.stats.current_moves = moves_used
+
+                    # 4) Aktif (tutulan / çekilen) parça var mı?
+                    active = self.vision.detect_active_piece(im, bx, by)
+
+                    if active is None:
+                        # Elimizde parça yok -> Sandıktan yeni parça çek
+                        # Sandık çekme butonu: (bx + 288, by + 161)
+                        chest_btn_x = bx + 288
+                        chest_btn_y = by + 161
+
+                        draw_attempts += 1
+                        if draw_attempts > 12:
+                            self._log("⚠️ Sandıktan parça çekilemedi. Sandık sayısı bitmiş olabilir mi?")
+                            time.sleep(0.8)
+                            draw_attempts = 0
+                            continue
+
+                        if self._focus_window():
+                            JigsawInput.click(chest_btn_x, chest_btn_y, button="left", fast=True)
+                        time.sleep(random.uniform(0.12, 0.20))
+                        continue
+
+                    # Parça başarıyla çekildi / görüldü!
+                    draw_attempts = 0
+                    p_name, p_sid, p_cells = active
+
+                    # 5) Matematiksel En Optimal Kararı Sor (JigsawPolicy)
+                    action: Action = self.policy.choose(mask, moves_used, p_cells)
+
+                    if action.kind == "place":
+                        r0, c0 = action.r0, action.c0
+                        # Hücre (r0, c0) merkez koordinatları
+                        cw = 39.6
+                        ch = 39.5
+                        cell_x = bx + 9 + int((c0 + 0.5) * cw)
+                        cell_y = by + 41 + int((r0 + 0.5) * ch)
+
+                        self._log(f"📥 [{moves_used + 1}. Adım] {p_name} -> Tahtaya Yerleştir: Satır {r0}, Sütun {c0} ({action.note})")
+                        if self._focus_window():
+                            JigsawInput.click(cell_x, cell_y, button="left", fast=True)
+                            moves_used += 1
+                        time.sleep(random.uniform(0.14, 0.22))
+
+                    elif action.kind == "discard":
+                        self._log(f"🗑️ [{moves_used + 1}. Adım] {p_name} -> ATILIYOR (Sağ Tık + Onay)! ({action.note})")
+                        if not self._focus_window():
+                            time.sleep(0.2)
+                            continue
+                        # Parçayı sağ tıklayarak yok etme diyaloğunu tetikle
+                        discard_x, discard_y = self._safe_discard_point(bx, by)
+                        JigsawInput.click(discard_x, discard_y, button="right", fast=True)
+                        time.sleep(random.uniform(0.12, 0.18))
+
+                        # Diyalog açılmasını bekle ve 'Evet' butonuna tıkla
+                        im_diag = self.vision.grab_screen()
+                        if self.vision.is_discard_dialog_open(im_diag, bx, by):
+                            evet_x = bx + 114
+                            evet_y = by + 145
+                            JigsawInput.click(evet_x, evet_y, button="left", fast=True)
+                            moves_used += 1
+                            time.sleep(random.uniform(0.12, 0.20))
+                        else:
+                            time.sleep(0.10)
+                            im_diag2 = self.vision.grab_screen()
+                            if self.vision.is_discard_dialog_open(im_diag2, bx, by):
+                                evet_x = bx + 114
+                                evet_y = by + 145
+                                JigsawInput.click(evet_x, evet_y, button="left", fast=True)
+                                moves_used += 1
+                                time.sleep(random.uniform(0.12, 0.20))
+                except ScreenShotError as e:
+                    now_t = time.monotonic()
+                    if now_t - last_grab_warn_t >= 3.0:
+                        last_grab_warn_t = now_t
+                        self._log(f"⚠️ Ekran okuma hatası (devam ediliyor): {e}")
+                    time.sleep(0.25)
+                except Exception as e:
+                    self._log(f"❌ Yapboz döngüsü hatası: {e}")
+                    logger.exception("JigsawRunner._loop beklenmeyen hata")
+                    break
+        finally:
+            self._running = False
+            close_thread_sct()
 

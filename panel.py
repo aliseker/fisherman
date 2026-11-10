@@ -39,7 +39,7 @@ if os.path.isdir(_venv_site) and _venv_site not in sys.path:
                     pass
 sys.path.insert(0, _base_dir)
 
-from hardware_manager import ensure_dpi_awareness, get_thread_sct
+from hardware_manager import ensure_dpi_awareness, get_thread_sct, close_thread_sct
 ensure_dpi_awareness()
 
 import tkinter as tk
@@ -220,6 +220,7 @@ class ROISelector:
 
             self._root.wait_window(overlay)
         finally:
+            close_thread_sct()
             try:
                 self._root.deiconify()
                 self._root.lift()
@@ -254,8 +255,13 @@ class FisherPanel(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("⚓ Metin2 Fishing Helper (1-4 Client)")
-        self.geometry("475x860")
+        self.title("⚓ Metin2 Fishing Helper (1-6 Client)")
+        try:
+            sh_avail = max(860, self.winfo_screenheight() - 90)
+            init_h = min(960, sh_avail)
+        except Exception:
+            init_h = 880
+        self.geometry(f"490x{init_h}")
         self.resizable(True, True)
         self.configure(bg=self.BG)
         self.attributes("-topmost", True)
@@ -640,7 +646,7 @@ class FisherPanel(tk.Tk):
 
         for idx, w in enumerate(wins, start=1):
             hwnd = w["hwnd"]
-            default_on = (hwnd in prev_selected) if had_prev else (idx <= 4)
+            default_on = (hwnd in prev_selected) if had_prev else (idx <= 6)
             var = tk.BooleanVar(value=default_on)
             slot_key = str(idx)
             slot_data = self._client_slots.get(slot_key, {})
@@ -728,7 +734,7 @@ class FisherPanel(tk.Tk):
             self._refresh_windows(silent=True)
         hwnds = self._get_selected_hwnds()
         if not hwnds and self._win_items:
-            hwnds = [h for _, h, _, _ in self._win_items[:4]]
+            hwnds = [h for _, h, _, _ in self._win_items[:6]]
         if not hwnds:
             self._append_log("⚠️ Ekrana dizilecek açık Metin2 penceresi bulunamadı!")
             return
@@ -1111,49 +1117,58 @@ class FisherPanel(tk.Tk):
 
         # Mouse tekerleği ile kaydırma desteği (Windows için)
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            if canvas.winfo_exists():
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
         canvas.pack(side="top", fill="both", expand=True, padx=5, pady=5)
         scrollbar.pack(side="right", fill="y", before=canvas)
-        
-        if not hasattr(self, "img_refs"):
-            self.img_refs = []
+
+        settings_win._img_refs = []
         vars_dict = {}
-        
+
         for item, value in current_wl.items():
             f = tk.Frame(scrollable_frame, bg=self.SURFACE, pady=6, padx=6)
             f.pack(fill="x", pady=2, padx=5, expand=True)
-            
+
             img_name = "soru_işareti" if item == "belli değil" else item.lower().replace(" ", "_")
             img_path = os.path.join("assets", f"{img_name}.png")
-            
+
             if Image and ImageTk and os.path.exists(img_path):
                 try:
                     pil_img = Image.open(img_path).resize((40, 40))
                     tk_img = ImageTk.PhotoImage(pil_img)
-                    self.img_refs.append(tk_img)
+                    settings_win._img_refs.append(tk_img)
                     tk.Label(f, image=tk_img, bg=self.SURFACE).pack(side="left", padx=5)
                 except Exception:
                     tk.Label(f, text="🖼️", bg=self.SURFACE, fg=self.DIM, width=4).pack(side="left", padx=5)
             else:
                 tk.Label(f, text="🖼️", bg=self.SURFACE, fg=self.DIM, width=4).pack(side="left", padx=5)
-                
+
             tk.Label(f, text=item.title(), font=self.FONT_H, bg=self.SURFACE, fg=self.TEXT, width=18, anchor="w").pack(side="left")
-            
+
             var = tk.BooleanVar(value=value)
             vars_dict[item] = var
-            cb = tk.Checkbutton(f, text="TUT", variable=var, bg=self.SURFACE, fg=self.GREEN, 
+            cb = tk.Checkbutton(f, text="TUT", variable=var, bg=self.SURFACE, fg=self.GREEN,
                                 selectcolor=self.ACCENT, activebackground=self.SURFACE, font=("Segoe UI", 12, "bold"))
             cb.pack(side="right", padx=10)
+
+        def _close_settings_win():
+            try:
+                canvas.unbind_all("<MouseWheel>")
+            except Exception:
+                pass
+            settings_win._img_refs.clear()
+            settings_win.destroy()
+
+        settings_win.protocol("WM_DELETE_WINDOW", _close_settings_win)
 
         def save_and_close():
             new_wl = {k: v.get() for k, v in vars_dict.items()}
             with open("ayarlar.json", "w", encoding="utf-8") as f:
                 json.dump(new_wl, f, ensure_ascii=False, indent=4)
             self._append_log("✅ Görsel ayarlar başarıyla kaydedildi!")
-            canvas.unbind_all("<MouseWheel>")
-            settings_win.destroy()
+            _close_settings_win()
             
         btn_frame = tk.Frame(settings_win, bg=self.BG, pady=10)
         btn_frame.pack(fill="x", side="bottom")
@@ -1577,6 +1592,9 @@ class FisherPanel(tk.Tk):
     def _on_close(self) -> None:
         if self._running:
             self._stop_app()
+        if self._jigsaw_runner and self._jigsaw_runner.is_running():
+            self._jigsaw_runner.stop()
+        close_thread_sct()
         self.destroy()
 
 

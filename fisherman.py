@@ -48,6 +48,7 @@ if _base_dir not in sys.path:
 import cv2
 import numpy as np
 import mss
+from mss.exception import ScreenShotError
 import pydirectinput
 pydirectinput.PAUSE = 0  # CRITICAL: Disable 0.1s default pause between actions
 import win32api
@@ -59,6 +60,8 @@ import win32process
 from hardware_manager import (
     ensure_dpi_awareness,
     get_thread_sct,
+    close_thread_sct,
+    thread_sct_scope,
     thread_grab_bgr,
     InputPriority,
     PriorityHardwareMutex,
@@ -250,8 +253,9 @@ def discover_game_windows(title_hint: str = "metin2") -> List[dict]:
 
 
 def tile_game_windows(hwnds: List[int], panel_reserve_width: int = 360) -> List[Tuple[int, int, int]]:
-    """Seçili 1-4 oyun penceresini çözünürlüklerini bozmadan (SWP_NOSIZE) ekrana hizalar.
-    1 pencere: Sol üst | 2 pencere (Laptop/%125 ölçek): Sol-Üst & Sağ-Alt Çapraz | Geniş ekran: Yan yana | 3-4: 2x2."""
+    """Seçili 1-6 oyun penceresini çözünürlüklerini bozmadan (SWP_NOSIZE) ekrana hizalar.
+    1:1 800x600 DPI ayarında 2K (2560x1440) ekrana 3-4 pencere 2x2 (panel sağda boşlukta),
+    5-6 pencere ise 3x2 sıfır çakışmayla dizilir."""
     valid = [h for h in hwnds if h and win32gui.IsWindow(h)]
     if not valid:
         return []
@@ -283,28 +287,40 @@ def tile_game_windows(hwnds: List[int], panel_reserve_width: int = 360) -> List[
         win_w, win_h = 816, 639
 
     n = len(valid)
-    col1_x = wx0
-    col2_x = wx0 + min(win_w, max(460, screen_w - panel_reserve_width - win_w + 60))
     row1_y = wy0
-    row2_y = wy0 + min(win_h, max(160, avail_h - win_h))
+    row2_y = wy0 + (win_h if (win_h * 2 <= avail_h) else max(140, avail_h - win_h))
 
     if n == 1:
-        coords = [(col1_x, row1_y)]
+        coords = [(wx0, row1_y)]
     elif n == 2:
-        if screen_w < (win_w * 2 + 160):
-            # Laptop / %125 ölçekli ekranlarda (örn. 1536x864) hiçbir oyun/sohbet alanının
-            # birbirinin üstüne binmemesi için Sol-Üst & Sağ-Alt çapraz dizilim:
+        if screen_w >= win_w * 2:
+            coords = [(wx0, row1_y), (wx0 + win_w, row1_y)]
+        else:
             diag_x = max(wx0 + 420, wx1 - win_w)
             diag_y = max(wy0 + 140, wy1 - win_h)
             coords = [(wx0, wy0), (diag_x, diag_y)]
+    elif n <= 4:
+        # 2x2 tam sığıyorsa (ör. 2K ekranda 1:1 800x600) pencereleri ASLA üst üste bindirme!
+        if win_w * 2 <= screen_w:
+            col1_x, col2_x = wx0, wx0 + win_w
         else:
-            coords = [(wx0, wy0), (wx0 + win_w, wy0)]
-    elif n == 3:
-        coords = [(col1_x, row1_y), (col2_x, row1_y), (col1_x, row2_y)]
+            col1_x = wx0
+            col2_x = max(wx0 + 420, wx1 - win_w)
+        coords = [(col1_x, row1_y), (col2_x, row1_y), (col1_x, row2_y), (col2_x, row2_y)][:n]
     else:
-        coords = [(col1_x, row1_y), (col2_x, row1_y), (col1_x, row2_y), (col2_x, row2_y)]
-        for extra_i in range(4, n):
-            coords.append((wx0 + (extra_i % 2) * 400, wy0 + ((extra_i // 2) % 2) * 300))
+        # 5-6 istemci: 3x2 sıfır çakışmalı ızgara (ör. 2560x1368 üzerinde 3x816 x 2x639)
+        cols = 3 if (win_w * 3 <= screen_w or n >= 5) else 2
+        coords = []
+        for idx_w in range(n):
+            r = (idx_w // cols) % 2
+            c = idx_w % cols
+            if win_w * cols <= screen_w:
+                tx = wx0 + c * win_w
+            else:
+                step_x = max(240, (screen_w - win_w) // max(1, cols - 1))
+                tx = wx0 + min(screen_w - win_w, c * step_x)
+            ty = row1_y if r == 0 else row2_y
+            coords.append((tx, ty))
 
     flags = win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE
     for h, (tx, ty) in zip(valid, coords):
@@ -413,9 +429,10 @@ def capture_window_roi(
                     mfc_dc = win32ui.CreateDCFromHandle(hwnd_dc)
                     save_dc = mfc_dc.CreateCompatibleDC()
                     save_bmp = win32ui.CreateBitmap()
+                    old_bmp = None
                     try:
                         save_bmp.CreateCompatibleBitmap(mfc_dc, ww, wh)
-                        save_dc.SelectObject(save_bmp)
+                        old_bmp = save_dc.SelectObject(save_bmp)
                         ok = ctypes.windll.user32.PrintWindow(hwnd, save_dc.GetSafeHdc(), 2)
                         if ok == 1:
                             bmp_info = save_bmp.GetInfo()
@@ -427,6 +444,11 @@ def capture_window_roi(
                             if crop.size > 0 and float(np.mean(crop)) > 5.0 and float(np.std(crop)) > 8.0:
                                 return crop
                     finally:
+                        if old_bmp is not None:
+                            try:
+                                save_dc.SelectObject(old_bmp)
+                            except Exception:
+                                pass
                         try:
                             win32gui.DeleteObject(save_bmp.GetHandle())
                         except Exception:
@@ -477,12 +499,15 @@ class InputCoordinator:
     def __init__(self, session_hwnds: Optional[List[int]] = None, title_hint: str = "metin2"):
         self.session_hwnds: Set[int] = {h for h in (session_hwnds or []) if h}
         self.title_hint = title_hint
-        self.mutex = PriorityHardwareMutex(aging_sec=1.35)
+        self.mutex = PriorityHardwareMutex(aging_sec=2.4)
         self.focus_guard = WindowFocusGuard(
             session_hwnds=self.session_hwnds,
             title_hint=self.title_hint,
             excluded_titles=_EXCLUDED_WINDOW_TITLES,
         )
+
+    def has_urgent_waiter(self) -> bool:
+        return self.mutex.has_urgent_waiter()
 
     def register_hwnd(self, hwnd: Optional[int]) -> None:
         if hwnd:
@@ -553,12 +578,33 @@ class ChatReader:
         self._backend = _OCR_BACKEND
         self._reader = _get_ocr_reader()  # Singleton — model sadece ilk seferde yüklenir
         self._last_chat_text = ""
+        self._last_grab_err_ts: float = 0.0
 
     def read_chat(self, roi_override: Optional[dict] = None, urgent: bool = False) -> str:
         roi = roi_override or resolve_window_roi(self.target_hwnd, self.config.chat_roi, self.config.rel_chat_roi)
-        frame = capture_window_roi(self.target_hwnd, roi, allow_background=False)
-        # 1. Görüntüyü 2 kat büyüt (ince harflerin kopmaması için 2x ideal, GPU'da ~25ms sürer)
-        resized = cv2.resize(frame, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+        try:
+            frame = capture_window_roi(self.target_hwnd, roi, allow_background=False)
+        except ScreenShotError as e:
+            now_t = time.monotonic()
+            if now_t - self._last_grab_err_ts >= 3.0:
+                self._last_grab_err_ts = now_t
+                log.warning(f"[OCR] Sohbet ekran görüntüsü alınamadı: {e}")
+            return ""
+        # 1. Görüntüyü büyüt (1:1 DPI 800x600 pencerelerde 2.25x ince harfleri keskinleştirir; büyükte 2.0x)
+        fx = 2.0
+        if self.target_hwnd:
+            try:
+                if win32gui.IsWindow(self.target_hwnd) and not win32gui.IsIconic(self.target_hwnd):
+                    cr = win32gui.GetClientRect(self.target_hwnd)
+                    if 200 <= (cr[2] - cr[0]) <= 960:
+                        fx = 2.25
+            except Exception:
+                pass
+        elif frame.shape[0] <= 42 and frame.shape[1] <= 500:
+            fx = 2.25
+        y_tol = 13.0 * (fx / 2.0)
+
+        resized = cv2.resize(frame, None, fx=fx, fy=fx, interpolation=cv2.INTER_CUBIC)
         # 2. Yarı-saydam chat arka planında Otsu ikilileştirme (binarization) 't', 'ı', 'l' harflerini
         #    eritip "Altın Sudak" -> "Akın Sudak" / "Alın Sudak" hatasına yol açıyordu.
         #    Bunun yerine yumuşak kontrast germe + ters gri tonlama kullanıyoruz.
@@ -589,7 +635,7 @@ class ChatReader:
                     lines_grouped.append([item])
                 else:
                     avg_cy = sum(x[0] for x in lines_grouped[-1]) / len(lines_grouped[-1])
-                    if abs(item[0] - avg_cy) <= 13.0:
+                    if abs(item[0] - avg_cy) <= y_tol:
                         lines_grouped[-1].append(item)
                     else:
                         lines_grouped.append([item])
@@ -1132,7 +1178,7 @@ class MinigameController:
             except Exception:
                 pass
 
-        if not (35.0 <= r <= min(pw, ph) * 0.49):
+        if not (26.0 <= r <= min(pw, ph) * 0.49):
             return None
         if not (pw * 0.15 <= cx <= pw * 0.85 and ph * 0.12 <= cy <= ph * 0.88):
             return None
@@ -1187,7 +1233,8 @@ class MinigameController:
                     dist_l = np.hypot(xx_l - lrcx, yy_l - lrcy)
                     self._locked_pool = (lpx, lpy, lpw, lph)
                     self._locked_ring = (lrcx, lrcy, lrr)
-                    self._ann_mask = (dist_l >= lrr - 5.5) & (dist_l <= lrr + 5.5) & (lz > 0)
+                    ann_half = max(4.0, min(5.8, lrr * 0.085))
+                    self._ann_mask = (dist_l >= lrr - ann_half) & (dist_l <= lrr + ann_half) & (lz > 0)
                     self._ann_count = max(1, int(np.count_nonzero(self._ann_mask)))
                     self._fish_zone = (dist_l <= lrr * 1.34) & (lz > 0)
                     pool_l = bgr[lpy:lpy + lph, lpx:lpx + lpw]
@@ -1199,7 +1246,8 @@ class MinigameController:
 
             yy, xx = np.ogrid[:ph, :pw]
             dist = np.hypot(xx - rcx, yy - rcy)
-            ann_mask = (dist >= rr - 5.5) & (dist <= rr + 5.5) & (z > 0)
+            ann_half = max(4.0, min(5.8, rr * 0.085))
+            ann_mask = (dist >= rr - ann_half) & (dist <= rr + ann_half) & (z > 0)
             ann_count = max(1, int(np.count_nonzero(ann_mask)))
             fish_zone = (dist <= rr * 1.34) & (z > 0)
 
@@ -1218,7 +1266,8 @@ class MinigameController:
         ann_rmg = ann_r.astype(np.int16) - pool_g[ann_mask].astype(np.int16)
         pink_px = int(np.count_nonzero((ann_rmg >= 18) & (ann_r >= 160)))
         pink_ratio = pink_px / float(ann_count)
-        is_pink = (pink_px >= 75) and (pink_ratio >= 0.040)
+        min_pink_px = max(45, int(ann_count * 0.025))
+        is_pink = (pink_px >= min_pink_px) and (pink_ratio >= 0.040)
 
         # 2. ADAPTİF BGR BALIK GÖVDESİ TESPİTİ (Çemberin içi + kenarına teğet geçen %134 bölge!)
         if (self._frame_idx <= 3 or self._frame_idx % 15 == 0) and np.any(fish_zone):
@@ -1241,7 +1290,8 @@ class MinigameController:
         in_circle = False
 
         if fcnts:
-            valid_f = [fc for fc in fcnts if 16 <= cv2.contourArea(fc) <= 2600]
+            min_fish_area = max(9, int(round(pw * ph * 0.00024)))
+            valid_f = [fc for fc in fcnts if min_fish_area <= cv2.contourArea(fc) <= 2600]
             if valid_f:
                 best = min(
                     valid_f,
@@ -1280,7 +1330,12 @@ class MinigameController:
         """Sıfır kuyruk gecikmeli, kilit-dostu gerçek-zamanlı keskin nişancı (Sniper) döngüsü.
         - Tarama ve hız hesabı %100 DONANIM KİLİTSİZ (paralel) çalışır.
         - Kilit yalnızca atış anında (URGENT_MINIGAME_HIT) alınır, pencere odaklanır, balık doğrudan
-          tıklanır ve vuruş sonrası bekleme boyunca kilit DERHAL serbest bırakılır."""
+          tıklanır ve vuruş sonrası bekleme boyunca kilit DERHAL serbest bırakılır.
+        - Çıkışta thread_sct_scope() ile bu geçici thread'e ait tüm GDI handle'ları kapatılır."""
+        with thread_sct_scope():
+            self._sniper_loop_impl()
+
+    def _sniper_loop_impl(self):
         log.info(f"[C{self.client_id}][SNIPER] Keskin nişancı döngüsü başlatıldı.")
         monitor = self.config.minigame_roi
         wait_decision_start = time.time()
@@ -1291,10 +1346,26 @@ class MinigameController:
         prev_ftime = 0.0
         vx, vy = 0.0, 0.0
         closed_streak = 0
+        grab_err_streak = 0
+        last_grab_warn_t = 0.0
 
         while not self.stop_event.is_set():
             loop_t0 = time.perf_counter()
-            bgr = thread_grab_bgr(monitor)
+            try:
+                bgr = thread_grab_bgr(monitor)
+                grab_err_streak = 0
+            except ScreenShotError as e:
+                grab_err_streak += 1
+                now_err = time.monotonic()
+                if now_err - last_grab_warn_t >= 2.0:
+                    last_grab_warn_t = now_err
+                    log.warning(f"[C{self.client_id}][SNIPER] Ekran okuma hatası ({grab_err_streak}): {e}")
+                if grab_err_streak >= 25:
+                    log.error(f"[C{self.client_id}][SNIPER] Ardışık ekran okuma hatası limiti aşıldı, döngü durduruluyor.")
+                    self.stop_event.set()
+                    break
+                time.sleep(0.05)
+                continue
             hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
 
             info = self.analyze_frame(bgr, hsv)
@@ -1402,7 +1473,13 @@ class MinigameController:
                                 continue
 
                             # Pencere değiştikten sonra balığın yerini taze kareyle doğrula
-                            fbgr = thread_grab_bgr(monitor)
+                            try:
+                                fbgr = thread_grab_bgr(monitor)
+                            except ScreenShotError as e:
+                                log.warning(f"[C{self.client_id}][SNIPER] Geçiş sonrası kare okunamadı: {e}")
+                                prev_fpos = None
+                                vx, vy = 0.0, 0.0
+                                continue
                             f_time = time.time()
                             fresh = self.analyze_frame(fbgr)
                             if not fresh["open"]:
@@ -1443,13 +1520,14 @@ class MinigameController:
                         lead_t = 0.012
                         lx = use_vx * lead_t
                         ly = use_vy * lead_t
+                        max_lead = max(4.5, min(7.5, rr * 0.105))
                         lmag = math.hypot(lx, ly)
-                        if lmag > 7.0:
-                            scale = 7.0 / lmag
+                        if lmag > max_lead:
+                            scale = max_lead / lmag
                             lx *= scale
                             ly *= scale
-                        max_dx = max(3.5, fw2 * 0.30)
-                        max_dy = max(3.0, fh2 * 0.30)
+                        max_dx = max(3.0, fw2 * 0.30)
+                        max_dy = max(2.5, fh2 * 0.30)
                         lx = max(-max_dx, min(max_dx, lx))
                         ly = max(-max_dy, min(max_dy, ly))
 
@@ -1481,13 +1559,14 @@ class MinigameController:
 
                     lx = vx * 0.012
                     ly = vy * 0.012
+                    max_lead = max(4.5, min(7.5, rr * 0.105))
                     lmag = math.hypot(lx, ly)
-                    if lmag > 7.0:
-                        scale = 7.0 / lmag
+                    if lmag > max_lead:
+                        scale = max_lead / lmag
                         lx *= scale
                         ly *= scale
-                    max_dx = max(3.5, fw2 * 0.30)
-                    max_dy = max(3.0, fh2 * 0.30)
+                    max_dx = max(3.0, fw2 * 0.30)
+                    max_dy = max(2.5, fh2 * 0.30)
                     lx = max(-max_dx, min(max_dx, lx))
                     ly = max(-max_dy, min(max_dy, ly))
 
@@ -1564,6 +1643,17 @@ class MinigameController:
             log.error(f"[OCR] Chat okuma hatası: {e}", exc_info=True)
             self.fish_decision = "play"
             self.decision_ready.set()
+        finally:
+            close_thread_sct()
+
+    def _safe_is_minigame_closed(self) -> Optional[bool]:
+        try:
+            bgr = thread_grab_bgr(self.config.minigame_roi)
+        except ScreenShotError as e:
+            log.warning(f"[C{self.client_id}][MINIGAME] Kapanış kontrolünde ekran okunamadı: {e}")
+            return None
+        hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+        return self._is_minigame_closed(hsv)
 
     def play(self):
         """Paralel OCR + Tek Döngülü Sniper motorunu çalıştırır ve gerçek yakalama durumunu doğrular."""
@@ -1600,9 +1690,11 @@ class MinigameController:
             log.warning("[MINIGAME] Zaman aşımı (16sn)! Döngü durduruluyor.")
             self.stop_event.set()
 
-        # İstenmeyen balıksa pencereyi donanım kilidi (HIGH_ANIM_CANCEL) altında ESC ile kapat
+        # İstenmeyen balıksa pencereyi donanım kilidi (HIGH_ANIM_CANCEL) altında ESC ile kapat;
+        # kapanış doğrulama beklemesini (polling) kilidin DIŞINDA yaparak diğer istemcileri bloklama.
         if self.skip_fish:
             if self.coordinator is not None:
+                sent_esc = False
                 got_lock = (
                     self.coordinator.is_user_in_game()
                     and self.coordinator.acquire(
@@ -1613,56 +1705,58 @@ class MinigameController:
                 if got_lock:
                     try:
                         if self.coordinator.focus_client(self.target_hwnd):
-                            bgr0 = thread_grab_bgr(self.config.minigame_roi)
-                            hsv0 = cv2.cvtColor(bgr0, cv2.COLOR_BGR2HSV)
-                            if not self._is_minigame_closed(hsv0):
+                            if self._safe_is_minigame_closed() is False:
                                 log.info(f"[C{self.client_id}][MINIGAME] İstenmeyen balık: ESC tuşuyla kapatılıyor...")
                                 self._close_minigame_window()
-                                close_start = time.time()
-                                while time.time() - close_start < 0.50:
-                                    time.sleep(0.05)
-                                    bgr_c = thread_grab_bgr(self.config.minigame_roi)
-                                    hsv_c = cv2.cvtColor(bgr_c, cv2.COLOR_BGR2HSV)
-                                    if self._is_minigame_closed(hsv_c):
-                                        log.info(f"[C{self.client_id}][MINIGAME] Minigame penceresi ESC ile kapandı.")
-                                        break
-                                else:
-                                    if self._is_game_focused():
-                                        bgr_chk = thread_grab_bgr(self.config.minigame_roi)
-                                        hsv_chk = cv2.cvtColor(bgr_chk, cv2.COLOR_BGR2HSV)
-                                        if not self._is_minigame_closed(hsv_chk):
-                                            log.warning(f"[C{self.client_id}][MINIGAME] İlk ESC yetmedi, tekrar ESC deneniyor...")
-                                            self._close_minigame_window()
-                                            time.sleep(0.06)
+                                time.sleep(_jitter(0.022, 0.004, 0.015, 0.032))
+                                sent_esc = True
                     finally:
                         self.coordinator.release()
+
+                if sent_esc:
+                    close_start = time.time()
+                    closed_ok = False
+                    while time.time() - close_start < 0.45:
+                        time.sleep(0.035)
+                        if self._safe_is_minigame_closed() is True:
+                            log.info(f"[C{self.client_id}][MINIGAME] Minigame penceresi ESC ile kapandı.")
+                            closed_ok = True
+                            break
+                    if not closed_ok and self.coordinator.is_user_in_game():
+                        got_retry = self.coordinator.acquire(
+                            priority=InputPriority.HIGH_ANIM_CANCEL,
+                            client_id=self.client_id,
+                            timeout=2.0,
+                        )
+                        if got_retry:
+                            try:
+                                if self.coordinator.focus_client(self.target_hwnd) and self._safe_is_minigame_closed() is False:
+                                    log.warning(f"[C{self.client_id}][MINIGAME] İlk ESC yetmedi, tekrar ESC deneniyor...")
+                                    self._close_minigame_window()
+                                    time.sleep(0.04)
+                            finally:
+                                self.coordinator.release()
             elif self._is_game_focused():
-                bgr0 = thread_grab_bgr(self.config.minigame_roi)
-                hsv0 = cv2.cvtColor(bgr0, cv2.COLOR_BGR2HSV)
-                if not self._is_minigame_closed(hsv0):
+                if self._safe_is_minigame_closed() is False:
                     log.info("[MINIGAME] İstenmeyen balık: ESC tuşuyla kapatılıyor...")
                     self._close_minigame_window()
                     close_start = time.time()
-                    while time.time() - close_start < 0.50:
-                        time.sleep(0.05)
-                        bgr_c = thread_grab_bgr(self.config.minigame_roi)
-                        hsv_c = cv2.cvtColor(bgr_c, cv2.COLOR_BGR2HSV)
-                        if self._is_minigame_closed(hsv_c):
+                    while time.time() - close_start < 0.45:
+                        time.sleep(0.035)
+                        if self._safe_is_minigame_closed() is True:
                             log.info("[MINIGAME] Minigame penceresi ESC ile başarıyla kapandı.")
                             break
                     else:
-                        if self._is_game_focused():
-                            bgr_chk = thread_grab_bgr(self.config.minigame_roi)
-                            hsv_chk = cv2.cvtColor(bgr_chk, cv2.COLOR_BGR2HSV)
-                            if not self._is_minigame_closed(hsv_chk):
-                                log.warning("[MINIGAME] Pencere ilk ESC'de kapanmadı, tekrar ESC deneniyor...")
-                                self._close_minigame_window()
-                                time.sleep(0.06)
-            time.sleep(0.08)
+                        if self._is_game_focused() and self._safe_is_minigame_closed() is False:
+                            log.warning("[MINIGAME] Pencere ilk ESC'de kapanmadı, tekrar ESC deneniyor...")
+                            self._close_minigame_window()
+                            time.sleep(0.04)
+            else:
+                time.sleep(0.04)
 
         self.stop_event.set()
-        t_sniper.join(timeout=0.25)
-        t_ocr.join(timeout=0.25)
+        t_sniper.join(timeout=0.50)
+        t_ocr.join(timeout=0.50)
 
         # MİNİGAME ÖN DOĞRULAMASI (Kesin sonuç state_anim_cancel sonunda 'Yemi kaybettin / tuttun!' OCR ile netleşir):
         # 3. başarılı vuruşta minigame penceresi vuruştan hemen sonra (<0.42sn) ve sarı süre barı bitmeden kapanır.
@@ -2101,47 +2195,49 @@ class FishingHelper:
                     pass
 
         log.info(f"{self._tag} Balıkçı işçisi başlatıldı (hwnd={self._game_hwnd}, mola hedefi={self._target_farm_min:.0f} dk).")
-        while self.running:
-            try:
-                if self._game_hwnd and not win32gui.IsWindow(self._game_hwnd):
-                    log.error(f"{self._tag} Oyun penceresi kapandı (hwnd={self._game_hwnd}). İşçi durduruluyor.")
+        try:
+            while self.running:
+                try:
+                    if self._game_hwnd and not win32gui.IsWindow(self._game_hwnd):
+                        log.error(f"{self._tag} Oyun penceresi kapandı (hwnd={self._game_hwnd}). İşçi durduruluyor.")
+                        break
+
+                    if self.state == AppState.IDLE:
+                        self.state = AppState.CAST
+                    elif self.state == AppState.CAST:
+                        self.state = self.state_cast()
+                    elif self.state == AppState.DECISION:
+                        self.state = self.state_decision()
+                    elif self.state == AppState.MINIGAME:
+                        self.state = self.state_minigame()
+                    elif self.state == AppState.ANIM_CANCEL:
+                        self.state = self.state_anim_cancel()
+                    elif self.state == AppState.COOLDOWN:
+                        self.state = self.state_cooldown()
+                    elif self.state == AppState.REST:
+                        rest_sec = self._roll_rest_seconds()
+                        log.info(f"{self._tag} [MOLA] Anti-ban dinlenme molası: {rest_sec / 60.0:.1f} dakika...")
+                        end_rest = time.time() + rest_sec
+                        while self.running and time.time() < end_rest:
+                            time.sleep(0.5)
+                        self._farm_start_time = time.time()
+                        self._target_farm_min = self._roll_farm_minutes()
+                        self.state = AppState.CAST
+                    elif self.state == AppState.STOPPED:
+                        break
+
+                    if self._load_saved_session and time.time() - self._last_save > 15:
+                        self.save_session()
+                except KeyboardInterrupt:
                     break
-
-                if self.state == AppState.IDLE:
-                    self.state = AppState.CAST
-                elif self.state == AppState.CAST:
-                    self.state = self.state_cast()
-                elif self.state == AppState.DECISION:
-                    self.state = self.state_decision()
-                elif self.state == AppState.MINIGAME:
-                    self.state = self.state_minigame()
-                elif self.state == AppState.ANIM_CANCEL:
-                    self.state = self.state_anim_cancel()
-                elif self.state == AppState.COOLDOWN:
-                    self.state = self.state_cooldown()
-                elif self.state == AppState.REST:
-                    rest_sec = self._roll_rest_seconds()
-                    log.info(f"{self._tag} [MOLA] Anti-ban dinlenme molası: {rest_sec / 60.0:.1f} dakika...")
-                    end_rest = time.time() + rest_sec
-                    while self.running and time.time() < end_rest:
-                        time.sleep(0.5)
-                    self._farm_start_time = time.time()
-                    self._target_farm_min = self._roll_farm_minutes()
-                    self.state = AppState.CAST
-                elif self.state == AppState.STOPPED:
+                except Exception as e:
+                    log.error(f"{self._tag} [HATA] Beklenmeyen hata: {e}", exc_info=True)
                     break
-
-                if self._load_saved_session and time.time() - self._last_save > 15:
-                    self.save_session()
-            except KeyboardInterrupt:
-                break
-            except Exception as e:
-                log.error(f"{self._tag} [HATA] Beklenmeyen hata: {e}", exc_info=True)
-                break
-
-        self.running = False
-        self._notify_stats_changed(save_disk=True)
-        log.info(f"{self._tag} İşçi durduruldu.")
+        finally:
+            self.running = False
+            close_thread_sct()
+            self._notify_stats_changed(save_disk=True)
+            log.info(f"{self._tag} İşçi durduruldu.")
 
     def state_minigame(self) -> AppState:
         """Minigame döngüsünü dış donanım kilidi OLMADAN (time-sharing) yürütür.
@@ -2149,7 +2245,19 @@ class FishingHelper:
         mg_roi = self.get_minigame_roi()
         chat_roi = self.get_chat_roi()
 
-        bgr_check = capture_window_roi(self._game_hwnd, mg_roi, allow_background=False)
+        bgr_check = None
+        for attempt in range(2):
+            try:
+                bgr_check = capture_window_roi(self._game_hwnd, mg_roi, allow_background=False)
+                break
+            except ScreenShotError as e:
+                if attempt == 0:
+                    log.warning(f"{self._tag} Minigame başlangıç yakalama hatası, tekrar deneniyor: {e}")
+                    time.sleep(0.12)
+                else:
+                    log.warning(f"{self._tag} Minigame ekranı okunamadı, atış tazeleniyor: {e}")
+                    return AppState.CAST
+
         if not is_minigame_open_bgr(bgr_check):
             log.info(f"{self._tag} Minigame penceresi kontrol sırasında kapanmış, olta tazeleniyor.")
             return AppState.ANIM_CANCEL
@@ -2171,6 +2279,15 @@ class FishingHelper:
             self._notify_stats_changed()
 
         return AppState.ANIM_CANCEL
+
+    def _sleep_stoppable(self, seconds: float) -> bool:
+        end_t = time.monotonic() + max(0.0, float(seconds))
+        while self.running:
+            rem = end_t - time.monotonic()
+            if rem <= 0.0:
+                return True
+            time.sleep(min(0.04, rem))
+        return False
 
     def state_cast(self) -> AppState:
         self.last_controller = None
@@ -2195,9 +2312,25 @@ class FishingHelper:
                     return AppState.CAST
 
                 self.keyboard.press(current_bait)
+                bait_sent_t = time.monotonic()
+
                 # Metin2'de yem takma paketi (CG_ITEM_USE -> GC_CHAT) ve binekten inme sonrası WAIT
-                # animasyon geçişi tamamlanmadan Space basılırsa oyun olta atmayı sessizce yoksayar.
-                time.sleep(_jitter(0.560, 0.035, 0.500, 0.640))
+                # animasyon geçişi (~0.56s) bitene kadar donanım kilidini BIRAK ki diğer istemciler
+                # minigame vuruşlarını beklemek zorunda kalmasın!
+                self._release_input()
+                held = False
+
+                bait_wait = _jitter(0.560, 0.035, 0.500, 0.640)
+                if not self._sleep_stoppable(bait_wait):
+                    return AppState.STOPPED
+
+                if not self._acquire_input(priority=InputPriority.NORMAL_CAST):
+                    return AppState.STOPPED if not self.running else AppState.CAST
+                held = True
+
+                rem_bait = bait_wait - (time.monotonic() - bait_sent_t)
+                if rem_bait > 0.0:
+                    time.sleep(rem_bait)
 
                 if not is_game_window_foreground(self._game_hwnd, self.config.game_window_title):
                     if self.coordinator and not self.coordinator.focus_client(self._game_hwnd):
@@ -2205,7 +2338,7 @@ class FishingHelper:
                 self.keyboard.press(self.config.cast_key)
 
                 # Space tuşu DirectInput motorunda işlenene kadar kısa oturma payı
-                time.sleep(_jitter(0.060, 0.010, 0.040, 0.085))
+                time.sleep(_jitter(0.045, 0.008, 0.030, 0.065))
 
                 # Space gönderilir gönderilmez donanım kilidini DERHAL serbest bırak!
                 # Olta sonrası sohbet beklemesi ve EasyOCR okuması diğer istemcileri bekletmeden paralel çalışır.
@@ -2239,6 +2372,7 @@ class FishingHelper:
                         if self.coordinator and not self.coordinator.focus_client(self._game_hwnd):
                             return AppState.CAST
                     self.keyboard.press(current_bait)
+                    bait2_sent_t = time.monotonic()
                     self._release_input()
                     held = False
 
@@ -2249,6 +2383,9 @@ class FishingHelper:
                     probe_event = self._chat_last_event(probe_chat)
 
                     if probe_event == "ok":
+                        rem2 = _jitter(0.560, 0.035, 0.500, 0.640) - (time.monotonic() - bait2_sent_t)
+                        if rem2 > 0.0 and not self._sleep_stoppable(rem2):
+                            return AppState.STOPPED
                         if not self._acquire_input(priority=InputPriority.NORMAL_CAST):
                             return AppState.STOPPED if not self.running else AppState.CAST
                         held = True
@@ -2256,9 +2393,8 @@ class FishingHelper:
                         if not is_game_window_foreground(self._game_hwnd, self.config.game_window_title):
                             if self.coordinator and not self.coordinator.focus_client(self._game_hwnd):
                                 return AppState.CAST
-                        time.sleep(_jitter(0.480, 0.030, 0.420, 0.560))
                         self.keyboard.press(self.config.cast_key)
-                        time.sleep(_jitter(0.060, 0.010, 0.040, 0.085))
+                        time.sleep(_jitter(0.045, 0.008, 0.030, 0.065))
                         self._release_input()
                         held = False
                         time.sleep(_jitter(0.240, 0.025, 0.190, 0.290))
@@ -2322,6 +2458,7 @@ class FishingHelper:
                 return AppState.STOPPED
             time.sleep(0.20)
 
+        last_grab_warn_t = 0.0
         while time.time() - wait_start < bite_timeout:
             if not self.running:
                 return AppState.STOPPED
@@ -2336,7 +2473,15 @@ class FishingHelper:
                     return AppState.CAST
 
             mg_roi = self.get_minigame_roi()
-            bgr = capture_window_roi(self._game_hwnd, mg_roi, allow_background=False)
+            try:
+                bgr = capture_window_roi(self._game_hwnd, mg_roi, allow_background=False)
+            except ScreenShotError as e:
+                now_err = time.monotonic()
+                if now_err - last_grab_warn_t >= 3.0:
+                    last_grab_warn_t = now_err
+                    log.warning(f"{self._tag} [STATE 2] Ekran yakalama hatası (devam ediliyor): {e}")
+                time.sleep(0.25)
+                continue
 
             if is_minigame_open_bgr(bgr):
                 log.info(f"{self._tag} [STATE 2] Balık vurdu (Mavi su + Minigame doğrulandı)! Sıra alınıyor...")
@@ -2427,22 +2572,53 @@ class FishingHelper:
                 )
 
     def state_anim_cancel(self) -> AppState:
-        """Güvenli CTRL+G+G animasyon iptali (try...finally keyUp('ctrl')), sonra kilitsiz COOLDOWN."""
+        """Bölünmüş güvenli CTRL+G+G animasyon iptali:
+        1. darbe (Bin, ~0.13s kilit) -> Kilitsiz ~0.275s bekleme -> 2. darbe (İn, ~0.13s kilit), sonra COOLDOWN.
+        Böylece uzun blokaj yaratmadan diğer istemcilerin minigame vuruşlarını özgür bırakır."""
         if not self._acquire_input(priority=InputPriority.HIGH_ANIM_CANCEL):
             return AppState.STOPPED if not self.running else AppState.CAST
 
-        post_delay = _jitter(0.58, 0.06, 0.46, 0.72)
-        cancel_done_t = time.monotonic()
+        log.info(f"{self._tag} [STATE 4] Güvenli animasyon iptali (CTRL+G+G)...")
+        mount_gap = _jitter(0.275, 0.025, 0.235, 0.325)
+        post_delay = _jitter(0.62, 0.05, 0.52, 0.74)
+        mounted_step1 = False
         try:
-            log.info(f"{self._tag} [STATE 4] Güvenli animasyon iptali (CTRL+G+G)...")
-            time.sleep(_jitter(0.035, 0.008, 0.020, 0.055))
-            post_delay = HumanKeyboard.safe_mount_cancel(
+            time.sleep(_jitter(0.016, 0.004, 0.010, 0.025))
+            mounted_step1 = HumanKeyboard.mount_single_pulse(
                 self.config.mount_key,
                 focus_check=lambda: is_game_window_foreground(self._game_hwnd, self.config.game_window_title),
             )
         finally:
-            cancel_done_t = time.monotonic()
             self._release_input()
+
+        if not mounted_step1:
+            self._process_last_controller_outcome()
+            return AppState.CAST if self.running else AppState.STOPPED
+
+        # Aradaki ~0.275 sn biniş beklemesini kilitsiz geçir (minigame vuruşları araya girebilsin)
+        self._sleep_stoppable(mount_gap)
+
+        # Karakteri binek üstünde bırakmamak için bot durdurulsa bile oyun odaktaysa 2. CTRL+G ile indir
+        acquired_step2 = False
+        if self.running:
+            acquired_step2 = self._acquire_input(priority=InputPriority.HIGH_ANIM_CANCEL)
+        elif self.coordinator is not None and self.coordinator.is_user_in_game():
+            if self.coordinator.acquire(priority=InputPriority.HIGH_ANIM_CANCEL, client_id=self.client_id, timeout=1.5):
+                if self._game_hwnd and not self.coordinator.focus_client(self._game_hwnd):
+                    self.coordinator.release()
+                else:
+                    acquired_step2 = True
+
+        cancel_done_t = time.monotonic()
+        if acquired_step2:
+            try:
+                HumanKeyboard.mount_single_pulse(
+                    self.config.mount_key,
+                    focus_check=lambda: is_game_window_foreground(self._game_hwnd, self.config.game_window_title),
+                )
+            finally:
+                cancel_done_t = time.monotonic()
+                self._release_input()
 
         self._cooldown_until = cancel_done_t + post_delay
         self._process_last_controller_outcome()
@@ -2459,7 +2635,7 @@ class FishingHelper:
 
 
 class MultiClientManager:
-    """Tek ekranda 1, 2, 3 veya 4 Metin2 istemcisini ortak GPU OCR modeli ve
+    """Tek ekranda 1-6 Metin2 istemcisini ortak GPU OCR modeli ve
     öncelikli fare/klavye kilidiyle yöneten orkestratör."""
 
     def __init__(
@@ -2576,7 +2752,7 @@ class MultiClientManager:
             # Açık Metin2 penceresi otomatik taranır; yine bulunamazsa klasik 5sn odak moduna düşer
             discovered = discover_game_windows(self.config.game_window_title)
             if discovered:
-                hwnd_list = [w["hwnd"] for w in discovered[:4]]
+                hwnd_list = [w["hwnd"] for w in discovered[:6]]
                 for h in hwnd_list:
                     self.coordinator.register_hwnd(h)
 
